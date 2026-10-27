@@ -154,10 +154,12 @@ def test_video_busy_returns_retryable_status_without_decoding(media_api):
     assert response.status_code == 429 and decoder.calls == 0
 
 
-def test_video_sdk_event_lifecycle_preserves_provenance_and_never_redecodes_replay(media_api):
+def test_video_sdk_event_lifecycle_preserves_provenance_and_never_redecodes_replay(
+    media_api, sdk_transport
+):
     _, api, decoder, _ = media_api
     options = {"max_frames": 4, "strategy": "uniform", "start_seconds": 1, "end_seconds": 4}
-    with MemoryClient("http://testserver", SCOPE, api_key=KEY, transport=api._transport) as sdk:
+    with MemoryClient("http://testserver", SCOPE, api_key=KEY, transport=sdk_transport(api)) as sdk:
         evidence = sdk.analyze_video(VIDEO, QUESTION, **options)
         assert decoder.calls == 1
         assert evidence.analysis_start_seconds == 1 and evidence.analysis_end_seconds == 4
@@ -200,9 +202,11 @@ def test_video_sdk_event_lifecycle_preserves_provenance_and_never_redecodes_repl
 
 
 @pytest.mark.parametrize("other_mode", ["image", "conversation"])
-def test_video_event_id_cannot_be_reused_by_other_evidence_modes(media_api, other_mode):
+def test_video_event_id_cannot_be_reused_by_other_evidence_modes(
+    media_api, other_mode, sdk_transport
+):
     _, api, decoder, ocr = media_api
-    with MemoryClient("http://testserver", SCOPE, api_key=KEY, transport=api._transport) as sdk:
+    with MemoryClient("http://testserver", SCOPE, api_key=KEY, transport=sdk_transport(api)) as sdk:
         sdk.enqueue_video(VIDEO, QUESTION, "shared-event", "media")
         with pytest.raises(httpx.HTTPStatusError) as conflict:
             if other_mode == "image":
@@ -216,12 +220,14 @@ def test_video_event_id_cannot_be_reused_by_other_evidence_modes(media_api, othe
 
 
 @pytest.mark.parametrize("field", ["user_id", "agent_id"])
-def test_video_event_receipt_and_source_are_scope_isolated(media_api, field):
+def test_video_event_receipt_and_source_are_scope_isolated(media_api, field, sdk_transport):
     _, api, decoder, _ = media_api
-    with MemoryClient("http://testserver", SCOPE, api_key=KEY, transport=api._transport) as sdk:
+    with MemoryClient("http://testserver", SCOPE, api_key=KEY, transport=sdk_transport(api)) as sdk:
         saved = sdk.enqueue_video(VIDEO, QUESTION, "scoped-video", "media")
     foreign = SCOPE.model_copy(update={field: "another"})
-    with MemoryClient("http://testserver", foreign, api_key=KEY, transport=api._transport) as sdk:
+    with MemoryClient(
+        "http://testserver", foreign, api_key=KEY, transport=sdk_transport(api)
+    ) as sdk:
         with pytest.raises(httpx.HTTPStatusError) as unavailable:
             sdk.event("scoped-video")
         assert unavailable.value.response.status_code == 404
@@ -253,7 +259,9 @@ def test_video_event_replays_after_app_restart_without_decoder(tmp_path):
         assert replay.json()["episode"]["id"] == saved.json()["episode"]["id"]
 
 
-def test_v03_image_event_identity_replays_with_default_layout_and_rejects_table(media_api):
+def test_v03_image_event_identity_replays_with_default_layout_and_rejects_table(
+    media_api, sdk_transport
+):
     app, api, _, ocr = media_api
     raw = image_bytes()
     digest = hashlib.sha256(raw).hexdigest()
@@ -297,7 +305,7 @@ def test_v03_image_event_identity_replays_with_default_layout_and_rejects_table(
             extract=False,
         )
     )
-    with MemoryClient("http://testserver", SCOPE, api_key=KEY, transport=api._transport) as sdk:
+    with MemoryClient("http://testserver", SCOPE, api_key=KEY, transport=sdk_transport(api)) as sdk:
         for kwargs in ({}, {"layout": "text"}):
             result = sdk.enqueue_image(raw, "Filter price?", "legacy-image", "media", **kwargs)
             assert result.event.replayed and result.event.episode.id == saved["episode"].id

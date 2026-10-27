@@ -4,6 +4,7 @@ import argparse
 import json
 import math
 import time
+from pathlib import Path
 
 import uvicorn
 
@@ -138,6 +139,17 @@ def main() -> None:
     serve = commands.add_parser("serve", help="Start the memory HTTP API")
     serve.add_argument("--host")
     serve.add_argument("--port", type=int)
+    mcp = commands.add_parser("mcp", help="Expose selected memory, image and video MCP tools")
+    mcp.add_argument("--user-id", required=True)
+    mcp.add_argument("--namespace", default="default")
+    mcp.add_argument("--agent-id", default="default")
+    mcp.add_argument(
+        "--modules", nargs="+", choices=["memory", "image", "video"], default=["memory"]
+    )
+    mcp.add_argument("--transport", choices=["stdio", "streamable-http"], default="stdio")
+    mcp.add_argument("--host", default="127.0.0.1")
+    mcp.add_argument("--port", type=int, default=8766)
+    mcp.add_argument("--media-root", type=Path, default=Path.cwd())
     worker = commands.add_parser("worker", help="Process durable extraction jobs with a daily cap")
     worker.add_argument(
         "--once", action="store_true", help="Process at most one ready job and exit"
@@ -166,6 +178,30 @@ def main() -> None:
     index_worker.add_argument("--poll-interval", type=float, default=2)
     args = parser.parse_args()
     settings = Settings()
+    if args.command == "mcp":
+        try:
+            from fishkeeping.mcp_server import create_mcp_server
+        except ModuleNotFoundError as exc:
+            if exc.name == "mcp":
+                raise SystemExit("Install MCP support: uv sync --extra mcp --locked") from None
+            raise
+        server = create_mcp_server(
+            settings,
+            Scope(namespace=args.namespace, user_id=args.user_id, agent_id=args.agent_id),
+            modules=tuple(args.modules),
+            media_root=args.media_root.resolve(),
+        )
+        if args.transport == "stdio":
+            server.run()
+        else:
+            server.run(
+                transport="streamable-http",
+                host=args.host,
+                port=args.port,
+                stateless_http=True,
+                json_response=True,
+            )
+        return
     if args.command == "worker":
         run_worker(
             settings, once=args.once, max_jobs=args.max_jobs, poll_interval=args.poll_interval

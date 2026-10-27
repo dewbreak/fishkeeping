@@ -26,18 +26,20 @@ jobs:
           python-version: ${{ matrix.python }}
           enable-cache: true
       - name: Install locked dependencies
-        run: uv sync --extra dev --locked
+        run: uv sync --extra dev --extra mcp --locked
       - name: Lint
-        run: uv run --locked ruff check .
+        run: uv run --extra dev --extra mcp --locked ruff check .
       - name: Formatting
-        run: uv run --locked ruff format --check .
+        run: uv run --extra dev --extra mcp --locked ruff format --check .
       - name: Tests
-        run: uv run --locked pytest -q
+        run: uv run --extra dev --extra mcp --locked pytest -q
       - name: HTTP smoke test
-        run: uv run --locked python scripts/smoke.py
+        run: uv run --extra dev --extra mcp --locked python scripts/smoke.py
+      - name: MCP stdio and Streamable HTTP smoke (no model calls)
+        run: uv run --extra dev --extra mcp --locked python scripts/smoke_mcp.py
       - name: Offline retrieval evaluation (no API calls)
-        run: uv run --locked python scripts/evaluate.py
+        run: uv run --extra dev --extra mcp --locked python scripts/evaluate.py
       - name: Frozen task timelines (no API calls)
-        run: uv run --locked python scripts/evaluate_tasks.py
+        run: uv run --extra dev --extra mcp --locked python scripts/evaluate_tasks.py
       - name: Build package
         run: uv build

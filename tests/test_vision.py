@@ -120,7 +120,7 @@ def test_pixel_limit_and_exif_coordinates():
     assert oriented.size == (40, 80)
 
 
-def test_image_event_lifecycle_and_sdk(tmp_path):
+def test_image_event_lifecycle_and_sdk(tmp_path, sdk_transport):
     key = "test-image-api-key-long"
     settings = Settings(
         _env_file=None, db_path=str(tmp_path / "images.db"), api_keys={key: "default"}
@@ -132,7 +132,7 @@ def test_image_event_lifecycle_and_sdk(tmp_path):
         assert api.post("/v1/images/events", json=body).status_code == 401
         api.headers["X-API-Key"] = key
         with MemoryClient(
-            "http://testserver", request().scope, api_key=key, transport=api._transport
+            "http://testserver", request().scope, api_key=key, transport=sdk_transport(api)
         ) as sdk:
             result = sdk.enqueue_image(picture(), body["question"], "image-1", "images")
             assert result.event.job is None

@@ -78,6 +78,8 @@ v0.4 的 `layout=table` 以完整行、表头、单位和脚注为原子组；�
 
 视频通过隔离子进程有界解码，保留真实解码时间戳；按相邻去重、场景差异和时间覆盖选帧，显式问题时间窗来自请求参数。API 不调用模型。`/v1/videos/events` 仅保存无像素的帧来源和选择诊断，可靠回放不重新解码；`/v1/videos/analyze` 才返回临时帧。显式多图问答有帧数和输出上限，不推断音频或未采样动作，不自动回退付费。详见 [视频设计](research/video-pipeline.md)。
 
+MCP 是另一层轻量入口，直接调用同一 Store/MemoryService/ImageProcessor/VideoProcessor，不绕经内部 HTTP，不复制业务实现。默认仅注册 memory 工具；image/video 可独立注册，生命周期只建立启用模块的对象。服务启动时固定 scope，媒体文件限定到配置目录。图片和帧通过原生 MCP 图片块交给客户端模型，服务不调用 DeepSeek；OCR 文本仅返回一份紧凑审计结构。官方 SDK 作为 `mcp` extra，基础 REST 安装不依赖它，详见 [MCP 接入](mcp.md)。
+
 ## 研究记录
 
 - [GitHub 项目比较](research/github-projects.md)

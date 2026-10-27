@@ -182,19 +182,8 @@ def test_upstream_error_is_redacted():
     store.close()
 
 
-def test_sdk_runs_complete_workflow_against_http_app(api):
-    def forward(request: httpx.Request):
-        return api.request(
-            request.method,
-            request.url.path,
-            params=request.url.params,
-            headers=request.headers,
-            content=request.content,
-        )
-
-    with MemoryClient(
-        "http://testserver", Scope(**SCOPE), transport=httpx.MockTransport(forward)
-    ) as sdk:
+def test_sdk_runs_complete_workflow_against_http_app(api, sdk_transport):
+    with MemoryClient("http://testserver", Scope(**SCOPE), transport=sdk_transport(api)) as sdk:
         memory = sdk.remember("I prefer Python", kind="semantic", fact_key="language")
         assert sdk.get(memory.id).id == memory.id
         assert sdk.list()[0].id == memory.id

@@ -1,6 +1,6 @@
 # Fishkeeping
 
-受人类记忆机制启发的独立 agent 记忆服务，提供 REST API 和 Python 客户端，可接入自己的 DeepSeek 对话循环。Python + FastAPI + SQLite，本地持久化，核心能力无需大模型 key。
+受人类记忆机制启发的独立 agent 记忆服务，提供 REST API、Python 客户端和可选 MCP 服务，可接入自己的 agent 对话循环。Python + FastAPI + SQLite，本地持久化，核心能力无需大模型 key。
 
 ## 已实现
 
@@ -13,6 +13,7 @@
 - 可恢复的本地增量索引 worker：自动发现新记忆，持久租约与全库每日计算预算。
 - 图片证据 API/SDK：CPU OCR、问题相关区域、来源哈希与坐标；显式 DeepSeek 原生视觉或紧凑 OCR 问答。
 - 复杂表格的整组证据保留与保守回退；短视频本地抽帧、显式时间窗、时间戳来源和单次多图问答。
+- MCP 的记忆、识图、视频三组工具可分别启用；支持 stdio 和 Streamable HTTP。
 
 “仿照人类记忆”在这里是工程设计方向，不代表完整模拟人脑。默认词法模式不保证同义词或跨语言理解；首版面向单机可信后端。
 
@@ -49,6 +50,24 @@ with MemoryClient("http://127.0.0.1:8765", Scope(user_id="alice")) as memory:
     recalled = memory.context("Alice 喜欢什么语言的示例？", max_chars=3000)
     print(recalled.context)
 ```
+
+## 按需启用 MCP
+
+MCP 服务独立运行，不需要先启动 REST API。默认只开放记忆工具：
+
+```text
+uv sync --extra dev --extra mcp --locked
+uv run --extra mcp --locked fishkeeping mcp --user-id alice
+```
+
+启用图片、视频时安装 `vision`，用 `--modules` 指定任意组合：
+
+```text
+uv sync --extra dev --extra mcp --extra vision --locked
+uv run --extra mcp --extra vision --locked fishkeeping mcp --user-id alice --modules memory image video
+```
+
+也可分别配置三个 MCP 条目，让客户端独立开关。媒体工具读取指定目录下的本地文件，将 OCR 或带时间戳的图片块交给客户端模型，不额外调用 DeepSeek。默认使用 stdio，HTTP 模式加 `--transport streamable-http`；配置示例和工具表见 [MCP 接入](docs/mcp.md)。
 
 ## 接入 DeepSeek
 
@@ -97,6 +116,7 @@ uv run --extra local --extra vision python examples/video_question.py clip.mp4 "
 | [多语言向量选型](docs/research/multilingual-embeddings.md) | 固定模型、许可证、CPU 推理、长文本分段与限制 |
 | [架构与选型](docs/architecture.md) | 技术决策、数据流、记忆生命周期和边界 |
 | [接入指南](docs/integration.md) | HTTP、SDK、认证、错误码与幂等语义 |
+| [MCP 接入](docs/mcp.md) | 记忆/识图/视频独立开关、stdio/HTTP、客户端配置 |
 | [运行维护](docs/operations.md) | 本地/Docker 启动、配置、备份、恢复、维护 |
 | [开发交接](docs/development.md) | 模块职责、算法、后续开发优先级 |
 | [验收记录](docs/verification.md) | 实际执行的验证与未验证范围 |
@@ -111,4 +131,4 @@ uv run --locked ruff check .
 uv build
 ```
 
-v0.4 本地验收：530 项测试通过，真实媒体 HTTP、CPU OCR 与本地向量联调通过。六题真实素材诊断共 11 次 Flash 请求，峰值费用估算 US$0.0062256；两道视频题输入约减 59%，稻米表仍有列关联错误，另有一次视频输出校验失败，均保留在 [评测报告](docs/media-evaluation.md)。旧检索指标无回退，详见 [验收记录](docs/verification.md)。普通 CI 不调用付费模型、不安装 OCR/向量权重；默认服务未开启认证，仅用于受信任本机，业务网关仍需完成用户授权。
+v0.5 本地验收：540 项测试通过，MCP stdio/HTTP、原生图片块、真实 OCR/视频 MCP 调用及原有 HTTP 联调通过。本轮没有付费模型调用；MCP 新增八项实际协议测试和两项 CLI 路由测试，复用原有业务测试。此前真实素材的收益和保留失败见 [评测报告](docs/media-evaluation.md)，本轮记录见 [验收记录](docs/verification.md)。普通 CI 不调用付费模型、不安装 OCR/向量权重；默认服务用于受信任本机，业务网关仍需完成用户授权。

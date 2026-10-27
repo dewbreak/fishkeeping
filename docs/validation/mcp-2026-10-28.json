@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-28",
+  "version": "0.5.0",
+  "mcp_sdk": "2.3.0",
+  "pytest_passed": 540,
+  "new_protocol_tests": 8,
+  "new_cli_tests": 2,
+  "stdio": {
+    "listed_tools": 9,
+    "memory_cycle": "passed",
+    "native_image": "passed"
+  },
+  "streamable_http": {
+    "listed_tools": 9,
+    "memory_cycle": "passed",
+    "native_image": "passed"
+  },
+  "real_media": {
+    "date": "2026-10-28",
+    "transport": "official Client(server), real protocol",
+    "modules": [
+      "image",
+      "video"
+    ],
+    "tools": [
+      "image_ocr",
+      "image_view",
+      "video_sample"
+    ],
+    "ocr_regions": 104,
+    "ocr_requires_review": true,
+    "video_frames": 6,
+    "timestamps": [
+      13.200000000000001,
+      14.0,
+      14.4,
+      15.6,
+      16.0,
+      16.8
+    ],
+    "video_requires_review": true,
+    "preview_sizes": [
+      [
+        512,
+        288
+      ],
+      [
+        512,
+        288
+      ],
+      [
+        512,
+        288
+      ],
+      [
+        512,
+        288
+      ],
+      [
+        512,
+        288
+      ],
+      [
+        512,
+        288
+      ]
+    ],
+    "database_created": false,
+    "model_calls": 0
+  },
+  "existing_http_ocr_local_embeddings_smoke": "passed",
+  "model_calls": 0
+}
