@@ -271,7 +271,7 @@ def test_whole_plan_checked_before_reserving_any_call(live_images, tmp_path):
 def test_preview_uses_adapter_without_network_or_ledger(live_images, monkeypatch):
     import socket
 
-    from fishkeeping.vision_models import ImageEvidence
+    from fishkeeping.vision_models import Box, ImageEvidence, TextRegion
 
     def fail_network(*args, **kwargs):
         pytest.fail("preview used network")
@@ -281,6 +281,22 @@ def test_preview_uses_adapter_without_network_or_ledger(live_images, monkeypatch
         "fishkeeping.image_chat.native_blocks",
         lambda *args, **kwargs: payload(image_bytes=b"synthetic")["messages"][1]["content"][1:],
     )
+    packed = json.dumps(
+        {
+            "type": "untrusted_image_evidence",
+            "sha256": "a" * 64,
+            "size": [10, 10],
+            "method": "fake-ocr",
+            "version": "1",
+            "task": "document",
+            "region": [0, 0, 10, 10],
+            "question": "What?",
+            "requires_review": True,
+            "omitted": 0,
+            "regions": [["r0", [0, 0, 9, 9], "25 C", 1.0]],
+        },
+        separators=(",", ":"),
+    )
     evidence = ImageEvidence(
         image_sha256="a" * 64,
         width=10,
@@ -288,13 +304,13 @@ def test_preview_uses_adapter_without_network_or_ledger(live_images, monkeypatch
         method="fake-ocr",
         method_version="1",
         question="What?",
-        regions=[],
-        total_regions=0,
+        regions=[TextRegion(id="r0", text="25 C", confidence=1, box=Box(x1=0, y1=0, x2=9, y2=9))],
+        total_regions=1,
         omitted_regions=0,
         requires_review=True,
         warnings=[],
-        packed="Untrusted synthetic evidence: 25 C",
-        chars_used=34,
+        packed=packed,
+        chars_used=len(packed),
     )
     prepared = [
         ({"id": "document", "question": "What?"}, b"synthetic", evidence),

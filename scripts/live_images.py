@@ -111,8 +111,10 @@ def _reject_constant(value):
     raise ValueError("nonfinite JSON")
 
 
-def estimate_request(request: httpx.Request) -> dict:
+def estimate_request(request: httpx.Request, *, max_images: int = 3) -> dict:
     """Validate the complete paid request and bound input without counting Base64 as text."""
+    if type(max_images) is not int or not 1 <= max_images <= 12:
+        raise BudgetError("Invalid experiment image cap")
     url = request.url
     if (
         request.method != "POST"
@@ -153,7 +155,11 @@ def estimate_request(request: httpx.Request) -> dict:
             content = message["content"]
             if isinstance(content, str):
                 continue
-            if not isinstance(content, list) or not content or len(content) > 8:
+            if (
+                not isinstance(content, list)
+                or not content
+                or len(content) > max(8, 2 * max_images + 2)
+            ):
                 raise ValueError("unsupported content")
             for block in content:
                 if block.get("type") == "text":
@@ -183,7 +189,7 @@ def estimate_request(request: httpx.Request) -> dict:
                     image_count += 1
                 else:
                     raise ValueError("unsupported content block")
-        if image_count > 3:
+        if image_count > max_images:
             raise ValueError("too many images")
         text_bytes = len(
             json.dumps(sanitized, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
@@ -210,14 +216,17 @@ def estimate_request(request: httpx.Request) -> dict:
 
 
 class LiveBudget:
-    def __init__(self, path: Path = DEFAULT_LEDGER):
+    def __init__(self, path: Path = DEFAULT_LEDGER, *, max_calls: int = MAX_CALLS):
+        if type(max_calls) is not int or not 1 <= max_calls <= 12:
+            raise BudgetError("Invalid experiment call cap")
         self.path = Path(path)
+        self.max_calls = max_calls
 
     def _load(self) -> dict:
         if not self.path.exists():
             return {
                 "version": 1,
-                "max_calls": MAX_CALLS,
+                "max_calls": self.max_calls,
                 "max_cost_nano_usd": MAX_COST_NANO_USD,
                 "entries": [],
             }
@@ -226,10 +235,10 @@ class LiveBudget:
             entries = data["entries"]
             if (
                 data["version"] != 1
-                or data["max_calls"] != MAX_CALLS
+                or data["max_calls"] != self.max_calls
                 or data["max_cost_nano_usd"] != MAX_COST_NANO_USD
                 or not isinstance(entries, list)
-                or len(entries) > MAX_CALLS
+                or len(entries) > self.max_calls
                 or len({entry["phase"] for entry in entries}) != len(entries)
                 or any(
                     type(entry["reserved_nano_usd"]) is not int
@@ -254,7 +263,7 @@ class LiveBudget:
             used = {entry["phase"] for entry in entries}
             pending = [item for item in plan if item["phase"] not in used]
             if (
-                len(entries) + len(pending) > MAX_CALLS
+                len(entries) + len(pending) > self.max_calls
                 or sum(item["reserved_nano_usd"] for item in [*entries, *pending])
                 > MAX_COST_NANO_USD
                 or any(entry.get("bound_exceeded") for entry in entries)
@@ -268,7 +277,7 @@ class LiveBudget:
             data = self._load()
             entries = data["entries"]
             if (
-                len(entries) >= MAX_CALLS
+                len(entries) >= self.max_calls
                 or any(entry["phase"] == phase or entry.get("bound_exceeded") for entry in entries)
                 or sum(entry["reserved_nano_usd"] for entry in entries)
                 + estimate["reserved_nano_usd"]
@@ -301,18 +310,21 @@ class LiveBudget:
 
 
 class BudgetTransport(httpx.BaseTransport):
-    def __init__(self, ledger: LiveBudget, inner: httpx.BaseTransport | None = None):
+    def __init__(
+        self, ledger: LiveBudget, inner: httpx.BaseTransport | None = None, *, max_images: int = 3
+    ):
         self.ledger = ledger
         self.inner = inner or httpx.HTTPTransport(retries=0)
         self.phase = "unset"
         self.last_reservation_id = None
+        self.max_images = max_images
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         if request.method == "GET":
             if str(request.url) != "https://api.deepseek.com/models":
                 raise BudgetError("Only the official free model-list GET is allowed")
             return self.inner.handle_request(request)
-        estimate = estimate_request(request)
+        estimate = estimate_request(request, max_images=self.max_images)
         identifier = self.ledger.reserve(self.phase, estimate)
         self.last_reservation_id = identifier
         start = time.perf_counter()

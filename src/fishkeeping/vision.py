@@ -20,6 +20,7 @@ from typing import Protocol
 
 from fishkeeping.retrieval import query_terms, tokenize
 from fishkeeping.service import NotConfiguredError
+from fishkeeping.table_evidence import select_table_evidence
 from fishkeeping.vision_models import Box, ImageEvidence, ImageRequest, TextRegion
 
 MAX_IMAGE_BYTES = 4 * 1024 * 1024
@@ -235,6 +236,7 @@ class ImageProcessor:
         if not matched:
             warnings.append("No lexical question match; bounded full OCR fallback requires review.")
         selected = []
+        selection_data = {}
 
         def pack(items, review):
             return _json(
@@ -253,24 +255,41 @@ class ImageProcessor:
                         [r.id, list(r.box.model_dump().values()), r.text, r.confidence]
                         for r in items
                     ],
+                    **({"selection": selection_data} if request.layout == "table" else {}),
                 }
             )
 
-        for i in candidates:
-            trial = sorted([*selected, regions[i]], key=lambda r: (r.box.y1, r.box.x1))
-            if len(pack(trial, True)) + 1 <= request.max_chars:
-                selected = trial
-        review = (
-            not matched
-            or not selected
-            or truncated
-            or any(r.confidence < 0.75 for r in selected)
-            or len(selected) < len(candidates)
-        )
-        if len(selected) < len(candidates):
-            warnings.append(
-                "Character budget omitted candidate evidence; use a region or native vision."
+        if request.layout == "table" and request.task != "scene":
+            plan = select_table_evidence(regions, request.question)
+            # Reserve the largest possible dropped-group counter before fitting whole groups.
+            selection_data = {**plan.diagnostics, "dropped_groups": 256}
+            plan = select_table_evidence(
+                regions,
+                request.question,
+                fits=lambda indices: (
+                    len(pack([regions[i] for i in indices], True)) + 1 <= request.max_chars
+                ),
             )
+            selection_data = plan.diagnostics
+            selected = [regions[i] for i in plan.indices]
+            review = plan.requires_review or truncated or not selected
+            warnings.extend(plan.warnings)
+        else:
+            for i in candidates:
+                trial = sorted([*selected, regions[i]], key=lambda r: (r.box.y1, r.box.x1))
+                if len(pack(trial, True)) + 1 <= request.max_chars:
+                    selected = trial
+            review = (
+                not matched
+                or not selected
+                or truncated
+                or any(r.confidence < 0.75 for r in selected)
+                or len(selected) < len(candidates)
+            )
+            if len(selected) < len(candidates):
+                warnings.append(
+                    "Character budget omitted candidate evidence; use a region or native vision."
+                )
         packed = pack(selected, review)
         if len(packed) > request.max_chars:
             raise ImageInputError("question and provenance exceed evidence budget")
@@ -289,4 +308,5 @@ class ImageProcessor:
             packed=packed,
             chars_used=len(packed),
             cache_hit=cache_hit,
+            selection=selection_data,
         )

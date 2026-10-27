@@ -23,6 +23,9 @@ def enqueue_image(
 ) -> ImageEventResponse:
     raw, _ = decode_image(request.image_base64)
     identity = request.model_dump(mode="json", exclude={"image_base64"})
+    # Preserve identities written by v0.3, which had no layout option.
+    if request.layout == "text":
+        identity.pop("layout")
     identity["image_sha256"] = hashlib.sha256(raw).hexdigest()
     digest = hashlib.sha256(_json(identity).encode()).hexdigest()
 
@@ -62,6 +65,7 @@ def enqueue_image(
                 warnings=envelope["warnings"],
                 packed=packed,
                 chars_used=len(packed),
+                selection=data.get("selection", {}),
             )
             saved["replayed"] = True
             return ImageEventResponse(evidence=evidence, event=saved)

@@ -1,0 +1,545 @@
+{
+  "fixture_sha256": "255a9affb46eed171c6414da3aa4cb746cf8c9182a1a06590ea272bb6caf7446",
+  "paid_calls": 0,
+  "source": "Public licensed assets; no business data",
+  "cases": [
+    {
+      "id": "real_coffee_spatial",
+      "kind": "photo",
+      "input_sha256": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7",
+      "input_bytes": 466706,
+      "variants": [
+        {
+          "variant": "baseline",
+          "route": "native_original",
+          "preparation_wall_seconds": 0.06501150000258349,
+          "preparation_parent_cpu_seconds": 0.046875,
+          "parent_peak_rss_bytes": 53669888,
+          "request_estimate": {
+            "request_sha256": "0d777825790ec80cc1a12e30f98f43b0ae5833a6520cf8a7be8ad0b7b733061b",
+            "text_utf8_bytes_upper_bound": 950,
+            "framing_token_allowance": 320,
+            "image_count": 1,
+            "image_token_upper_bound": 1024,
+            "input_token_upper_bound": 2294,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 1917000,
+            "reserved_cost_usd": 0.001917
+          }
+        },
+        {
+          "variant": "optimized",
+          "route": "native_low",
+          "preparation_wall_seconds": 0.04374989999632817,
+          "preparation_parent_cpu_seconds": 0.046875,
+          "parent_peak_rss_bytes": 55549952,
+          "request_estimate": {
+            "request_sha256": "cbf8345d22f2fad9b6e3e6dc0e5611521d2cab5cf30b33a272492e3e90ad67e9",
+            "text_utf8_bytes_upper_bound": 945,
+            "framing_token_allowance": 320,
+            "image_count": 1,
+            "image_token_upper_bound": 1024,
+            "input_token_upper_bound": 2289,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 1915500,
+            "reserved_cost_usd": 0.0019155
+          }
+        }
+      ]
+    },
+    {
+      "id": "real_rocket_structure",
+      "kind": "photo",
+      "input_sha256": "c2dd0de7c538df8d111e479619b129464d0269d0ae5fd18ca91d33a7fdfea95c",
+      "input_bytes": 112525,
+      "variants": [
+        {
+          "variant": "baseline",
+          "route": "native_original",
+          "preparation_wall_seconds": 0.03520040000148583,
+          "preparation_parent_cpu_seconds": 0.03125,
+          "parent_peak_rss_bytes": 55549952,
+          "request_estimate": {
+            "request_sha256": "5084aff833526399aa679ba5cad41b6d8800d6c2c0dd0605d9982cd7fd55dc2a",
+            "text_utf8_bytes_upper_bound": 974,
+            "framing_token_allowance": 320,
+            "image_count": 1,
+            "image_token_upper_bound": 1024,
+            "input_token_upper_bound": 2318,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 1924200,
+            "reserved_cost_usd": 0.0019242
+          }
+        },
+        {
+          "variant": "optimized",
+          "route": "native_low",
+          "preparation_wall_seconds": 0.03609379999397788,
+          "preparation_parent_cpu_seconds": 0.046875,
+          "parent_peak_rss_bytes": 55549952,
+          "request_estimate": {
+            "request_sha256": "87b93fee1872df898286ef37eaa6055259dab6e3bf2ad2691b8775e34fe30f28",
+            "text_utf8_bytes_upper_bound": 969,
+            "framing_token_allowance": 320,
+            "image_count": 1,
+            "image_token_upper_bound": 1024,
+            "input_token_upper_bound": 2313,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 1922700,
+            "reserved_cost_usd": 0.0019227
+          }
+        }
+      ]
+    },
+    {
+      "id": "real_usda_corn_multilevel",
+      "kind": "table",
+      "input_sha256": "9150fce9ca735cf09526c446ea244e229592e9b3690d6315e5b52bbc7dd4d88a",
+      "input_bytes": 223919,
+      "variants": [
+        {
+          "variant": "baseline",
+          "route": "native_original",
+          "preparation_wall_seconds": 0.036854300007689744,
+          "preparation_parent_cpu_seconds": 0.03125,
+          "parent_peak_rss_bytes": 71442432,
+          "request_estimate": {
+            "request_sha256": "4aa2f02a06136c558618d1d9044084827d59b28f8561459b32f2f50813a11e05",
+            "text_utf8_bytes_upper_bound": 993,
+            "framing_token_allowance": 320,
+            "image_count": 1,
+            "image_token_upper_bound": 1024,
+            "input_token_upper_bound": 2337,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 1929900,
+            "reserved_cost_usd": 0.0019299
+          }
+        },
+        {
+          "variant": "optimized",
+          "route": "native_fallback_empty_table",
+          "ocr_selected": 0,
+          "ocr_total": 290,
+          "omitted_regions": 290,
+          "requires_review": true,
+          "selection": {
+            "version": "ocr-table-row-context-v1",
+            "selection_mode": "full_table_fallback",
+            "row_bands": 37,
+            "header_bands": 3,
+            "data_bands": 31,
+            "matched_data_bands": 3,
+            "note_bands": 0,
+            "candidate_groups": 1,
+            "dropped_groups": 1,
+            "missing_question_terms": [
+              "california",
+              "iowa",
+              "other",
+              "不要",
+              "产量",
+              "保留",
+              "分别",
+              "列或",
+              "别是",
+              "包含",
+              "单产",
+              "单位",
+              "取该",
+              "各是",
+              "否包",
+              "和",
+              "多少",
+              "年",
+              "年产",
+              "年收",
+              "并保",
+              "收获",
+              "日单",
+              "是否",
+              "是多",
+              "月",
+              "月预",
+              "注是",
+              "测错",
+              "留单",
+              "的",
+              "脚注",
+              "获面",
+              "表并",
+              "要把",
+              "该表",
+              "读取",
+              "量与",
+              "量分",
+              "量各",
+              "错当",
+              "面积",
+              "预测"
+            ],
+            "structure_verified": false
+          },
+          "audit_chars": 961,
+          "model_text_chars": 65,
+          "preparation_wall_seconds": 7.886086600003182,
+          "preparation_parent_cpu_seconds": 15.625,
+          "parent_peak_rss_bytes": 367034368,
+          "request_estimate": {
+            "request_sha256": "4aa2f02a06136c558618d1d9044084827d59b28f8561459b32f2f50813a11e05",
+            "text_utf8_bytes_upper_bound": 993,
+            "framing_token_allowance": 320,
+            "image_count": 1,
+            "image_token_upper_bound": 1024,
+            "input_token_upper_bound": 2337,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 1929900,
+            "reserved_cost_usd": 0.0019299
+          }
+        }
+      ]
+    },
+    {
+      "id": "real_usda_rice_two_tables",
+      "kind": "table",
+      "input_sha256": "54ebb48ea3cdf9528dff0338e046c59aacb5aaaa0f78362d4b78b2ac49d9e66a",
+      "input_bytes": 125640,
+      "variants": [
+        {
+          "variant": "baseline",
+          "route": "native_original",
+          "preparation_wall_seconds": 0.026097900001332164,
+          "preparation_parent_cpu_seconds": 0.046875,
+          "parent_peak_rss_bytes": 367034368,
+          "request_estimate": {
+            "request_sha256": "56690c92ca9f1cd8f5dd5b6faa76f81dec5003d67257b9cd1163e4e02125b064",
+            "text_utf8_bytes_upper_bound": 1016,
+            "framing_token_allowance": 320,
+            "image_count": 1,
+            "image_token_upper_bound": 1024,
+            "input_token_upper_bound": 2360,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 1936800,
+            "reserved_cost_usd": 0.0019368
+          }
+        },
+        {
+          "variant": "optimized",
+          "route": "table_ocr_review_experiment",
+          "ocr_selected": 104,
+          "ocr_total": 104,
+          "omitted_regions": 0,
+          "requires_review": true,
+          "selection": {
+            "version": "ocr-table-row-context-v1",
+            "selection_mode": "full_table_fallback",
+            "row_bands": 24,
+            "header_bands": 3,
+            "data_bands": 9,
+            "matched_data_bands": 2,
+            "note_bands": 0,
+            "candidate_groups": 1,
+            "dropped_groups": 0,
+            "missing_question_terms": [
+              "上下",
+              "下两",
+              "下表",
+              "不同",
+              "两张",
+              "个类",
+              "中粒",
+              "于总",
+              "产分",
+              "产和",
+              "产量",
+              "使用",
+              "保留",
+              "入哪",
+              "分别",
+              "别多",
+              "单产",
+              "单位",
+              "取上",
+              "合计",
+              "同单",
+              "同时",
+              "否等",
+              "和产",
+              "哪个",
+              "在",
+              "多少",
+              "年",
+              "年的",
+              "并保",
+              "张水",
+              "总产",
+              "意单",
+              "把甜",
+              "日与",
+              "日的",
+              "时读",
+              "是否",
+              "是多",
+              "月",
+              "水稻",
+              "注意",
+              "注把",
+              "甜米",
+              "用不",
+              "留单",
+              "的单",
+              "的长",
+              "短粒",
+              "稻表",
+              "等于",
+              "米计",
+              "类别",
+              "粒产",
+              "美国",
+              "脚注",
+              "表并",
+              "计入",
+              "计是",
+              "读取",
+              "量使",
+              "量分",
+              "量是",
+              "长粒"
+            ],
+            "structure_verified": false
+          },
+          "audit_chars": 5774,
+          "model_text_chars": 4187,
+          "preparation_wall_seconds": 3.543554200005019,
+          "preparation_parent_cpu_seconds": 8.6875,
+          "parent_peak_rss_bytes": 477356032,
+          "request_estimate": {
+            "request_sha256": "877bb1768ab669c468dcf33aead0be213e76767474af5a280317ba3129f732cd",
+            "text_utf8_bytes_upper_bound": 5592,
+            "framing_token_allowance": 320,
+            "image_count": 0,
+            "image_token_upper_bound": 0,
+            "input_token_upper_bound": 5912,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 3002400,
+            "reserved_cost_usd": 0.0030024
+          }
+        }
+      ]
+    },
+    {
+      "id": "real_bbb_alternating_shots",
+      "kind": "video",
+      "input_sha256": "b2ded9ae5a20fa36ca8cec49ef923bffb5e1a51d9e8c1f8336273d2fa9d35ff0",
+      "input_bytes": 11053871,
+      "variants": [
+        {
+          "variant": "baseline",
+          "route": "uniform_full_video_original",
+          "selected_frames": 12,
+          "timestamps_seconds": [
+            0.0,
+            2.8000000000000003,
+            6.0,
+            8.8,
+            11.6,
+            14.8,
+            17.6,
+            20.8,
+            23.6,
+            26.400000000000002,
+            29.6,
+            32.4
+          ],
+          "decode_frames": 811,
+          "candidate_count": 82,
+          "window_candidate_count": 82,
+          "analysis_window": [
+            0.0,
+            32.4
+          ],
+          "target_intervals_covered": 0,
+          "target_intervals_total": 4,
+          "interval_coverage": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "max_gap_seconds": 3.200000000000001,
+          "observed_transitions": 27,
+          "represented_transitions": 1,
+          "requires_review": true,
+          "preparation_wall_seconds": 2.321662699992885,
+          "preparation_parent_cpu_seconds": 1.046875,
+          "parent_peak_rss_bytes": 477356032,
+          "request_estimate": {
+            "request_sha256": "bae06fc0f3b04cbcf560521392adb22fe17cc215769093bb024bc263791c46d9",
+            "text_utf8_bytes_upper_bound": 2554,
+            "framing_token_allowance": 320,
+            "image_count": 12,
+            "image_token_upper_bound": 12288,
+            "input_token_upper_bound": 15162,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 5777400,
+            "reserved_cost_usd": 0.0057774
+          }
+        },
+        {
+          "variant": "optimized",
+          "route": "question_window_adaptive_low",
+          "selected_frames": 6,
+          "timestamps_seconds": [
+            13.200000000000001,
+            14.0,
+            14.4,
+            15.6,
+            16.0,
+            16.8
+          ],
+          "decode_frames": 811,
+          "candidate_count": 82,
+          "window_candidate_count": 10,
+          "analysis_window": [
+            13.0,
+            17.0
+          ],
+          "target_intervals_covered": 3,
+          "target_intervals_total": 4,
+          "interval_coverage": [
+            false,
+            true,
+            true,
+            true
+          ],
+          "max_gap_seconds": 1.1999999999999993,
+          "observed_transitions": 4,
+          "represented_transitions": 3,
+          "requires_review": true,
+          "preparation_wall_seconds": 2.1506587999901967,
+          "preparation_parent_cpu_seconds": 0.5625,
+          "parent_peak_rss_bytes": 477356032,
+          "request_estimate": {
+            "request_sha256": "c54a3374de66b258d9bce21288323eb80f2dafb26b52a1b80d2bb69e6525b135",
+            "text_utf8_bytes_upper_bound": 1879,
+            "framing_token_allowance": 320,
+            "image_count": 6,
+            "image_token_upper_bound": 6144,
+            "input_token_upper_bound": 8343,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 3731700,
+            "reserved_cost_usd": 0.0037317
+          }
+        }
+      ]
+    },
+    {
+      "id": "real_bbb_action_order",
+      "kind": "video",
+      "input_sha256": "b2ded9ae5a20fa36ca8cec49ef923bffb5e1a51d9e8c1f8336273d2fa9d35ff0",
+      "input_bytes": 11053871,
+      "variants": [
+        {
+          "variant": "baseline",
+          "route": "uniform_full_video_original",
+          "selected_frames": 12,
+          "timestamps_seconds": [
+            0.0,
+            2.8000000000000003,
+            6.0,
+            8.8,
+            11.6,
+            14.8,
+            17.6,
+            20.8,
+            23.6,
+            26.400000000000002,
+            29.6,
+            32.4
+          ],
+          "decode_frames": 811,
+          "candidate_count": 82,
+          "window_candidate_count": 82,
+          "analysis_window": [
+            0.0,
+            32.4
+          ],
+          "target_intervals_covered": 0,
+          "target_intervals_total": 4,
+          "interval_coverage": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "max_gap_seconds": 3.200000000000001,
+          "observed_transitions": 27,
+          "represented_transitions": 1,
+          "requires_review": true,
+          "preparation_wall_seconds": 2.13314309999987,
+          "preparation_parent_cpu_seconds": 0.59375,
+          "parent_peak_rss_bytes": 477356032,
+          "request_estimate": {
+            "request_sha256": "4d2f4275298fbc80c6da92ad618c841341abf16eaece7e3b589ea6e2d092b865",
+            "text_utf8_bytes_upper_bound": 2587,
+            "framing_token_allowance": 320,
+            "image_count": 12,
+            "image_token_upper_bound": 12288,
+            "input_token_upper_bound": 15195,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 5787300,
+            "reserved_cost_usd": 0.0057873
+          }
+        },
+        {
+          "variant": "optimized",
+          "route": "question_window_adaptive_low",
+          "selected_frames": 6,
+          "timestamps_seconds": [
+            19.2,
+            20.0,
+            20.400000000000002,
+            20.8,
+            21.6,
+            22.8
+          ],
+          "decode_frames": 811,
+          "candidate_count": 82,
+          "window_candidate_count": 10,
+          "analysis_window": [
+            19.0,
+            23.0
+          ],
+          "target_intervals_covered": 3,
+          "target_intervals_total": 4,
+          "interval_coverage": [
+            true,
+            true,
+            true,
+            false
+          ],
+          "max_gap_seconds": 1.1999999999999993,
+          "observed_transitions": 7,
+          "represented_transitions": 4,
+          "requires_review": true,
+          "preparation_wall_seconds": 2.1063289000012446,
+          "preparation_parent_cpu_seconds": 0.578125,
+          "parent_peak_rss_bytes": 477356032,
+          "request_estimate": {
+            "request_sha256": "39930746c3f5aa8d3e45f533914ecb4cda64e3ba3cc9f14b6cbf949e2d5dc397",
+            "text_utf8_bytes_upper_bound": 1912,
+            "framing_token_allowance": 320,
+            "image_count": 6,
+            "image_token_upper_bound": 6144,
+            "input_token_upper_bound": 8376,
+            "output_token_upper_bound": 1024,
+            "reserved_nano_usd": 3741600,
+            "reserved_cost_usd": 0.0037416
+          }
+        }
+      ]
+    }
+  ],
+  "token_note": "Preflight bounds are estimates, not usage. Each image <=1024 tokens.",
+  "planned_calls": 12,
+  "reserved_upper_cost_usd": 0.0355164
+}

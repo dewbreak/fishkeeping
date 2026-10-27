@@ -28,6 +28,7 @@ class ImageRequest(Model):
     question: str = Field(min_length=1, max_length=1000)
     max_chars: int = Field(default=3000, ge=800, le=10000)
     task: Literal["document", "scene"] = "document"
+    layout: Literal["text", "table"] = "text"
     region: Box | None = None
 
 
@@ -58,6 +59,7 @@ class ImageEvidence(Model):
     packed: str
     chars_used: int
     cache_hit: bool = False
+    selection: dict = Field(default_factory=dict)
 
 
 class ImageEventResponse(Model):

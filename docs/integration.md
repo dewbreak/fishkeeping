@@ -244,9 +244,16 @@ v0.2 不再在 recall 中编码文档或预热缓存，旧配置 `FISHKEEPING_EM
 - `404`：请求的记忆、来源目标或事件在指定 scope 下不可用；不要用换 user ID 的方式尝试读取。
 - `409`：事件 ID 与请求内容/摄入模式冲突、原事件结果已经被删除，或任务不能重试（包括不存在或尝试次数耗尽）；先检查业务事件，勿盲目覆盖。
 - `422`：输入不符合 schema，如未知字段、无效范围、working 缺少会话，或来源无效/不在当前 scope。
+- `429`：同一视频处理器已有解码任务；调用方应控制并发，不能启动无界重试。
 - `502`：模型提供商请求失败；响应含脱敏 `code`，不泄露提供商凭证或原始错误正文。常见值为 `authentication_failed`、`insufficient_balance`、`rate_limited`、`timeout`、`truncated_response`、`invalid_response`。
 - `503`：同步抽取或显式索引请求缺少相应提供商配置。可靠 `/v1/events` 仍可保存 pending 任务。向量召回失败会降级为词法模式，并在成功响应的 `warnings` 中提示。
 
 后台提取失败通过 `job.state/last_error_code` 表达，不会把已接受的事件改成 HTTP `502`。先检查任务状态，再决定是否手动重试。
 
 重试应有限次并带退避。只对同一摄入事件重用幂等 ID；不要自动重试删除、归档等状态操作来掩盖逻辑错误。
+
+## 图片与视频证据
+
+图片 `/v1/images/analyze` / `/v1/images/events` 和 SDK `analyze_image` / `enqueue_image` 接受 `layout="table"`，详细用法见 [图片指南](vision.md)。默认 `layout="text"` 保留 v0.3 事件身份；旧事件重放不重新 OCR，改成 table 必须换 event ID。
+
+视频 `/v1/videos/analyze` / `/v1/videos/events` 与 SDK `analyze_video` / `enqueue_video` 接受视频字节、问题、`start_seconds/end_seconds`、`max_frames` 和 `strategy`。analyze 返回带临时 JPEG 的 `VideoEvidence`，events 返回普通 `EventResponse`，episode 内只有来源元数据。事件不生成付费提取任务；模型问答须另外显式调用 `DeepSeekImageChat.answer_video`，见 [视频指南](video.md)。

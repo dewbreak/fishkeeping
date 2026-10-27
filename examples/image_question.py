@@ -17,6 +17,7 @@ def main():
     parser.add_argument("--user-id", default="image-demo")
     parser.add_argument("--event-id", default="image-demo-1")
     parser.add_argument("--mode", choices=["ocr", "low", "original"], default="ocr")
+    parser.add_argument("--layout", choices=["text", "table"], default="text")
     parser.add_argument("--live", action="store_true")
     args = parser.parse_args()
     image = args.image.read_bytes()
@@ -27,6 +28,7 @@ def main():
             args.event_id,
             "image-demo",
             task="document" if args.mode == "ocr" else "scene",
+            layout=args.layout,
         )
         print(result.evidence.model_dump_json(indent=2))
         print("Source episode:", result.event.episode.id)

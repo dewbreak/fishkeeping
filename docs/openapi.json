@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Fishkeeping Memory API",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "paths": {
     "/healthz": {
@@ -1025,6 +1025,118 @@
         }
       }
     },
+    "/v1/videos/analyze": {
+      "post": {
+        "summary": "Analyze Video",
+        "operationId": "analyze_video_v1_videos_analyze_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VideoRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/videos/events": {
+      "post": {
+        "summary": "Video Event",
+        "operationId": "video_event_v1_videos_events_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VideoEventRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/recall": {
       "post": {
         "summary": "Recall",
@@ -1682,6 +1794,15 @@
             "title": "Task",
             "default": "document"
           },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "text",
+              "table"
+            ],
+            "title": "Layout",
+            "default": "text"
+          },
           "region": {
             "anyOf": [
               {
@@ -1799,6 +1920,11 @@
             "type": "boolean",
             "title": "Cache Hit",
             "default": false
+          },
+          "selection": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Selection"
           }
         },
         "additionalProperties": false,
@@ -1852,6 +1978,15 @@
             ],
             "title": "Task",
             "default": "document"
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "text",
+              "table"
+            ],
+            "title": "Layout",
+            "default": "text"
           },
           "region": {
             "anyOf": [
@@ -2751,6 +2886,372 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VideoEventRequest": {
+        "properties": {
+          "scope": {
+            "$ref": "#/components/schemas/Scope"
+          },
+          "video_base64": {
+            "type": "string",
+            "maxLength": 33554432,
+            "minLength": 1,
+            "title": "Video Base64"
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "max_frames": {
+            "type": "integer",
+            "maximum": 12.0,
+            "minimum": 2.0,
+            "title": "Max Frames",
+            "default": 6
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "adaptive",
+              "uniform"
+            ],
+            "title": "Strategy",
+            "default": "adaptive"
+          },
+          "max_chars": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 2000.0,
+            "title": "Max Chars",
+            "default": 6000
+          },
+          "start_seconds": {
+            "type": "number",
+            "exclusiveMaximum": 180.0,
+            "minimum": 0.0,
+            "title": "Start Seconds",
+            "default": 0
+          },
+          "end_seconds": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Seconds"
+          },
+          "event_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[\\w.:-]+$",
+            "title": "Event Id"
+          },
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[\\w.:-]+$",
+            "title": "Session Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scope",
+          "video_base64",
+          "question",
+          "event_id",
+          "session_id"
+        ],
+        "title": "VideoEventRequest"
+      },
+      "VideoEvidence": {
+        "properties": {
+          "video_sha256": {
+            "type": "string",
+            "title": "Video Sha256"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "method_version": {
+            "type": "string",
+            "title": "Method Version"
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "adaptive",
+              "uniform"
+            ],
+            "title": "Strategy"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Duration Seconds"
+          },
+          "container_duration_seconds": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Container Duration Seconds"
+          },
+          "decoded_frames": {
+            "type": "integer",
+            "maximum": 6000.0,
+            "minimum": 2.0,
+            "title": "Decoded Frames"
+          },
+          "candidate_count": {
+            "type": "integer",
+            "maximum": 90.0,
+            "minimum": 2.0,
+            "title": "Candidate Count"
+          },
+          "window_candidate_count": {
+            "type": "integer",
+            "maximum": 90.0,
+            "minimum": 2.0,
+            "title": "Window Candidate Count"
+          },
+          "analysis_start_seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Analysis Start Seconds"
+          },
+          "analysis_end_seconds": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Analysis End Seconds"
+          },
+          "duplicate_candidates": {
+            "type": "integer",
+            "maximum": 89.0,
+            "minimum": 0.0,
+            "title": "Duplicate Candidates"
+          },
+          "sample_interval_seconds": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Sample Interval Seconds"
+          },
+          "selected_frames": {
+            "items": {
+              "$ref": "#/components/schemas/VideoFrame"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "minItems": 2,
+            "title": "Selected Frames"
+          },
+          "max_gap_seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Max Gap Seconds"
+          },
+          "observed_transitions": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Observed Transitions"
+          },
+          "represented_transitions": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Represented Transitions"
+          },
+          "requires_review": {
+            "type": "boolean",
+            "title": "Requires Review"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "packed": {
+            "type": "string",
+            "title": "Packed"
+          },
+          "chars_used": {
+            "type": "integer",
+            "title": "Chars Used"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "video_sha256",
+          "question",
+          "method",
+          "method_version",
+          "strategy",
+          "duration_seconds",
+          "container_duration_seconds",
+          "decoded_frames",
+          "candidate_count",
+          "window_candidate_count",
+          "analysis_start_seconds",
+          "analysis_end_seconds",
+          "duplicate_candidates",
+          "sample_interval_seconds",
+          "selected_frames",
+          "max_gap_seconds",
+          "observed_transitions",
+          "represented_transitions",
+          "requires_review",
+          "warnings",
+          "packed",
+          "chars_used"
+        ],
+        "title": "VideoEvidence"
+      },
+      "VideoFrame": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "frame_index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Frame Index"
+          },
+          "timestamp_seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Timestamp Seconds"
+          },
+          "image_sha256": {
+            "type": "string",
+            "title": "Image Sha256"
+          },
+          "image_base64": {
+            "type": "string",
+            "maxLength": 5592408,
+            "minLength": 1,
+            "title": "Image Base64"
+          },
+          "mime_type": {
+            "type": "string",
+            "const": "image/jpeg",
+            "title": "Mime Type",
+            "default": "image/jpeg"
+          },
+          "width": {
+            "type": "integer",
+            "maximum": 1280.0,
+            "minimum": 1.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "maximum": 1280.0,
+            "minimum": 1.0,
+            "title": "Height"
+          },
+          "selection_reason": {
+            "type": "string",
+            "title": "Selection Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "frame_index",
+          "timestamp_seconds",
+          "image_sha256",
+          "image_base64",
+          "width",
+          "height",
+          "selection_reason"
+        ],
+        "title": "VideoFrame"
+      },
+      "VideoRequest": {
+        "properties": {
+          "scope": {
+            "$ref": "#/components/schemas/Scope"
+          },
+          "video_base64": {
+            "type": "string",
+            "maxLength": 33554432,
+            "minLength": 1,
+            "title": "Video Base64"
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "max_frames": {
+            "type": "integer",
+            "maximum": 12.0,
+            "minimum": 2.0,
+            "title": "Max Frames",
+            "default": 6
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "adaptive",
+              "uniform"
+            ],
+            "title": "Strategy",
+            "default": "adaptive"
+          },
+          "max_chars": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 2000.0,
+            "title": "Max Chars",
+            "default": 6000
+          },
+          "start_seconds": {
+            "type": "number",
+            "exclusiveMaximum": 180.0,
+            "minimum": 0.0,
+            "title": "Start Seconds",
+            "default": 0
+          },
+          "end_seconds": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Seconds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scope",
+          "video_base64",
+          "question"
+        ],
+        "title": "VideoRequest"
       }
     }
   }

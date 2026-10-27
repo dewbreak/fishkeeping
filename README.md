@@ -12,6 +12,7 @@
 - `namespace / user_id / agent_id` 隔离、绑定 namespace 的 API key、OpenAPI 与类型化客户端。
 - 可恢复的本地增量索引 worker：自动发现新记忆，持久租约与全库每日计算预算。
 - 图片证据 API/SDK：CPU OCR、问题相关区域、来源哈希与坐标；显式 DeepSeek 原生视觉或紧凑 OCR 问答。
+- 复杂表格的整组证据保留与保守回退；短视频本地抽帧、显式时间窗、时间戳来源和单次多图问答。
 
 “仿照人类记忆”在这里是工程设计方向，不代表完整模拟人脑。默认词法模式不保证同义词或跨语言理解；首版面向单机可信后端。
 
@@ -79,6 +80,14 @@ uv run --extra local --extra vision python examples/image_question.py screenshot
 
 示例默认只做本地 OCR 和可靠事件保存；添加 `--live` 才调用一次 DeepSeek。场景图片选择 `--mode low --live`。接口、来源和限制见 [图片接入指南](docs/vision.md)；[官方能力与许可调研](docs/research/deepseek-vision.md)。
 
+复杂表格使用 `--layout table`，歧义时保留整页，超预算要求原图复核。视频示例同样默认零模型调用：
+
+```text
+uv run --extra local --extra vision python examples/video_question.py clip.mp4 "13到17秒发生了什么？" --start 13 --end 17
+```
+
+视频采用带时间戳的稀疏图片证据，没有音频理解；详见 [视频接入](docs/video.md) 和 [真实素材评测](docs/media-evaluation.md)。
+
 ## 文档与验证
 
 | 文档 | 内容 |
@@ -93,6 +102,8 @@ uv run --extra local --extra vision python examples/image_question.py screenshot
 | [验收记录](docs/verification.md) | 实际执行的验证与未验证范围 |
 | [检索评测](docs/evaluation.md) | 不调用模型的固定诊断集、指标与保留的失败案例 |
 | [图片识别](docs/vision.md) | API/SDK、本地 OCR、原生视觉、费用和真实对比 |
+| [视频识别](docs/video.md) | 本地有界解码、问题时间窗、帧来源、可靠事件 |
+| [真实素材评测](docs/media-evaluation.md) | 真实照片、复杂表格、多镜头动画；实际 token 与失败边界 |
 
 ```text
 uv run --locked pytest -q
@@ -100,4 +111,4 @@ uv run --locked ruff check .
 uv build
 ```
 
-v0.3 本地验收：380 项测试通过，真实 CPU OCR + 本地向量 HTTP 联调通过。新增冻结任务集 Recall@3 由 62.5% 提升至 90.6%；两个截图案例输入 tokens 分别减少 67.2% 和 33.8%。本阶段仅 8 次真实 Flash 请求，总费用按 usage 和峰值单价估算 US$0.002073，详见 [验收记录](docs/verification.md)。普通 CI 不调用付费模型、不安装 OCR/向量权重；默认服务未开启认证，仅用于受信任本机，业务网关仍需完成用户授权。
+v0.4 本地验收：530 项测试通过，真实媒体 HTTP、CPU OCR 与本地向量联调通过。六题真实素材诊断共 11 次 Flash 请求，峰值费用估算 US$0.0062256；两道视频题输入约减 59%，稻米表仍有列关联错误，另有一次视频输出校验失败，均保留在 [评测报告](docs/media-evaluation.md)。旧检索指标无回退，详见 [验收记录](docs/verification.md)。普通 CI 不调用付费模型、不安装 OCR/向量权重；默认服务未开启认证，仅用于受信任本机，业务网关仍需完成用户授权。

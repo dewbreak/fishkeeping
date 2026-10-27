@@ -1,0 +1,318 @@
+{
+  "reviewed_on": "2026-10-28",
+  "reviewer_method": "独立查看公开源照片/PDF页面、冻结参考、已保存答案、实际传入模型的selected frames和OCR区域；无新增模型调用，不改标签。人工内容完整性与引用充分性分别判定。",
+  "fixture_sha256_canonical": "255a9affb46eed171c6414da3aa4cb746cf8c9182a1a06590ea272bb6caf7446",
+  "fixture_sha256_bytes": "34610570cf69810aeaae6e87b99dcd7d941b89515493b982a9d0fc7c8b9951ca",
+  "evidence_artifacts": {
+    "answers_json_sha256": "2261cf759c363fe9a5391a37ccb9feca36bc325f81cdf61258816a6516f3492b",
+    "live_report_sha256": "1c94b51cb2c518432617d757d2ab76a9991ddd19f03a454c2c93cccb632d9311",
+    "offline_report_sha256": "1a5e89f8e672bb44ede90112522e09f52a295e693f64b93750767f3c923abec0"
+  },
+  "media_inputs": {
+    "real_coffee_spatial": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7",
+    "real_rocket_structure": "c2dd0de7c538df8d111e479619b129464d0269d0ae5fd18ca91d33a7fdfea95c",
+    "real_usda_corn_multilevel": "9150fce9ca735cf09526c446ea244e229592e9b3690d6315e5b52bbc7dd4d88a",
+    "real_usda_rice_two_tables": "54ebb48ea3cdf9528dff0338e046c59aacb5aaaa0f78362d4b78b2ac49d9e66a",
+    "real_bbb_alternating_shots": "b2ded9ae5a20fa36ca8cec49ef923bffb5e1a51d9e8c1f8336273d2fa9d35ff0",
+    "real_bbb_action_order": "b2ded9ae5a20fa36ca8cec49ef923bffb5e1a51d9e8c1f8336273d2fa9d35ff0"
+  },
+  "selected_frame_evidence_sha256": {
+    "real_bbb_action_order-baseline-evidence.json": "18b507ef21a9ee4f29179d591626a4a1b8e5fcd9951dffbfdfcae320affc8b79",
+    "real_bbb_action_order-optimized-evidence.json": "40eafd57fbdce690660b80a087bb520a765a91775abb3c2c1650be2732e3a479",
+    "real_bbb_alternating_shots-baseline-evidence.json": "434cf0ffe4a40c7b594a26b4237b4b9dcc41fb55817da8d45276904e54329ac5",
+    "real_bbb_alternating_shots-optimized-evidence.json": "b20f1c49785ce4ead3c7a9313af05ab466d75473a6690e2e3103766cbbbebe92"
+  },
+  "counts": {
+    "planned_variants": 12,
+    "paid_reserved_attempts": 11,
+    "accepted_stored_variants": 11,
+    "independent_accepted_answers": 10,
+    "fully_complete_stored_variants": 7,
+    "fully_complete_independent_answers": 6,
+    "reused_variants": 1,
+    "unreviewable_output_variants": 1
+  },
+  "limitations": [
+    "六题小样本诊断，两个视频问题来自同一动画，不能推广为一般实拍/长视频准确率。",
+    "完全相同的玉米请求只付费一次，optimized答案为复用，不是独立测量。",
+    "冻结区间命中是时间戳落点指标，不等于语义证据覆盖；人工帧审查另列且不修改原区间。",
+    "输出校验失败只能记为流程未完成，缺少原始响应时不能推断具体语义错误。",
+    "数值/步骤正确和证据引用完备是独立维度。"
+  ],
+  "reviews": [
+    {
+      "phase": "real_coffee_spatial:baseline",
+      "decision": "pass",
+      "answer_available": true,
+      "task_complete": true,
+      "citation_status": "present_and_supports_requested_facts",
+      "reason": "一个杯子、一把金属勺、杯柄左下、匙碗右下、勺柄右上、红棕色杯碟与木质桌面均与实图和冻结参考一致。",
+      "request_sha256": "0d777825790ec80cc1a12e30f98f43b0ae5833a6520cf8a7be8ad0b7b733061b",
+      "reused_from": null,
+      "manual_review": true,
+      "unsupported_material_claim": false,
+      "answer_text_sha256": "d8a42d0bc9bb81ce8c0dc1e0911b21af78239b0b808e4e09bbbf5512465fc205",
+      "reported_uncertain": false,
+      "evidence_ids": [
+        "image0"
+      ]
+    },
+    {
+      "phase": "real_coffee_spatial:optimized",
+      "decision": "pass",
+      "answer_available": true,
+      "task_complete": true,
+      "citation_status": "present_and_supports_requested_facts",
+      "reason": "一个杯子、一把金属勺、杯柄左下、匙碗右下、勺柄右上、红棕色杯碟与木质桌面均与实图和冻结参考一致。",
+      "request_sha256": "cbf8345d22f2fad9b6e3e6dc0e5611521d2cab5cf30b33a272492e3e90ad67e9",
+      "reused_from": null,
+      "manual_review": true,
+      "unsupported_material_claim": false,
+      "answer_text_sha256": "353bc93c0fb7b68c49ae19bad84eaa3e0ae960e77a8743f9f1ecde517698fc97",
+      "reported_uncertain": false,
+      "evidence_ids": [
+        "image0"
+      ]
+    },
+    {
+      "phase": "real_rocket_structure:baseline",
+      "decision": "pass",
+      "answer_available": true,
+      "task_complete": true,
+      "citation_status": "present_and_supports_requested_facts",
+      "reason": "中央一枚火箭，左右各两座高塔，包含裁切边缘塔；深蓝天空与亮灯正确，明确不足以确认离地。",
+      "request_sha256": "5084aff833526399aa679ba5cad41b6d8800d6c2c0dd0605d9982cd7fd55dc2a",
+      "reused_from": null,
+      "manual_review": true,
+      "unsupported_material_claim": false,
+      "answer_text_sha256": "cf9cc04aab7031ceb9cd42d7cdb82891f5ea5c8e2a516f25888b4629caa693e0",
+      "reported_uncertain": false,
+      "evidence_ids": [
+        "image0"
+      ]
+    },
+    {
+      "phase": "real_rocket_structure:optimized",
+      "decision": "pass_with_appropriate_uncertainty",
+      "answer_available": true,
+      "task_complete": true,
+      "citation_status": "present_and_supports_requested_facts",
+      "reason": "数量、左右关系、照明和不能确认起飞均正确。uncertain=true符合单帧不能证明运动状态的题意，不应因此判内容错误。",
+      "request_sha256": "87b93fee1872df898286ef37eaa6055259dab6e3bf2ad2691b8775e34fe30f28",
+      "reused_from": null,
+      "manual_review": true,
+      "unsupported_material_claim": false,
+      "uncertainty_appropriate": true,
+      "answer_text_sha256": "7fa8745215a710000a64161f5020a6566a716ba94afcb19d34c1f330f7a7989d",
+      "reported_uncertain": true,
+      "evidence_ids": [
+        "image0"
+      ]
+    },
+    {
+      "phase": "real_usda_corn_multilevel:baseline",
+      "decision": "content_pass_citation_missing",
+      "answer_available": true,
+      "task_complete": true,
+      "citation_status": "missing",
+      "reason": "六个数字及对应年份/月份/单位均正确；California包含、Texas不包含的脚注判断正确。evidence_ids为空，内容正确与引用不完备分开记录。optimized复用同一baseline响应，不是独立第二次成功试验。",
+      "request_sha256": "4aa2f02a06136c558618d1d9044084827d59b28f8561459b32f2f50813a11e05",
+      "reused_from": null,
+      "manual_review": true,
+      "numeric_cells_correct": 6,
+      "numeric_cells_total": 6,
+      "citation_complete": false,
+      "footnote_correct": true,
+      "units_correct": true,
+      "answer_text_sha256": "1ca55d0170865c2be05cdd6ea7c448384f1b3e1df92aa63daefdb8e5d79ede7a",
+      "reported_uncertain": false,
+      "evidence_ids": []
+    },
+    {
+      "phase": "real_usda_corn_multilevel:optimized",
+      "decision": "content_pass_citation_missing",
+      "answer_available": true,
+      "task_complete": true,
+      "citation_status": "missing",
+      "reason": "六个数字及对应年份/月份/单位均正确；California包含、Texas不包含的脚注判断正确。evidence_ids为空，内容正确与引用不完备分开记录。optimized复用同一baseline响应，不是独立第二次成功试验。",
+      "request_sha256": "4aa2f02a06136c558618d1d9044084827d59b28f8561459b32f2f50813a11e05",
+      "reused_from": "real_usda_corn_multilevel:baseline",
+      "manual_review": true,
+      "numeric_cells_correct": 6,
+      "numeric_cells_total": 6,
+      "citation_complete": false,
+      "footnote_correct": true,
+      "units_correct": true,
+      "answer_text_sha256": "1ca55d0170865c2be05cdd6ea7c448384f1b3e1df92aa63daefdb8e5d79ede7a",
+      "reported_uncertain": false,
+      "evidence_ids": []
+    },
+    {
+      "phase": "real_usda_rice_two_tables:baseline",
+      "decision": "fail_column_association",
+      "answer_available": true,
+      "task_complete": false,
+      "citation_status": "valid_ids_but_answer_contradicts_source",
+      "reason": "California九月应为8,800磅/英亩，却回答8,650（十月值）。十月8,650、总量219,812、长粒166,808、中粒51,481、短粒1,523、总和与甜米归短粒均正确。关键月份列错，因此整题不通过。",
+      "request_sha256": "56690c92ca9f1cd8f5dd5b6faa76f81dec5003d67257b9cd1163e4e02125b064",
+      "reused_from": null,
+      "manual_review": true,
+      "numeric_cells_correct": 5,
+      "numeric_cells_total": 6,
+      "incorrect_cells": [
+        {
+          "cell": "California.yield.2024-09-01.pounds_per_acre",
+          "expected": 8800,
+          "reported": 8650
+        }
+      ],
+      "footnote_correct": true,
+      "sum_correct": true,
+      "unit_note": "响应保留1,000 cwt并区分磅/英亩。US cwt是100磅；中文可写千美担以避免英制112磅英担歧义。",
+      "answer_text_sha256": "f19380183db91d05198e13daa426f44135dc00786141b4e873a2d3e6c30802ea",
+      "reported_uncertain": false,
+      "evidence_ids": [
+        "image0"
+      ]
+    },
+    {
+      "phase": "real_usda_rice_two_tables:optimized",
+      "decision": "fail_column_association",
+      "answer_available": true,
+      "task_complete": false,
+      "citation_status": "valid_ids_but_answer_contradicts_source",
+      "reason": "California九月应为8,800磅/英亩，却回答8,650（十月值）。十月8,650、总量219,812、长粒166,808、中粒51,481、短粒1,523、总和与甜米归短粒均正确。关键月份列错，因此整题不通过。",
+      "request_sha256": "877bb1768ab669c468dcf33aead0be213e76767474af5a280317ba3129f732cd",
+      "reused_from": null,
+      "manual_review": true,
+      "numeric_cells_correct": 5,
+      "numeric_cells_total": 6,
+      "incorrect_cells": [
+        {
+          "cell": "California.yield.2024-09-01.pounds_per_acre",
+          "expected": 8800,
+          "reported": 8650
+        }
+      ],
+      "footnote_correct": true,
+      "sum_correct": true,
+      "unit_note": "响应保留1,000 cwt并区分磅/英亩。US cwt是100磅；中文可写千美担以避免英制112磅英担歧义。",
+      "ocr_diagnostic": {
+        "correct_token_present": true,
+        "correct_region": "r33",
+        "correct_region_text": "8,800",
+        "correct_region_confidence": 0.9999,
+        "october_region": "r34",
+        "october_region_text": "8,650",
+        "conclusion": "OCR字符正确且已引用r33，但答案仍把十月值赋给九月；列关联/答案推理失败，不能称为本例识别改善。"
+      },
+      "answer_text_sha256": "f5774fceeb399b223f430d37e9fb11b99b8dd282d63e4a371bb0356d3ae3de72",
+      "reported_uncertain": false,
+      "evidence_ids": [
+        "r32",
+        "r33",
+        "r34",
+        "r97",
+        "r94",
+        "r95",
+        "r96",
+        "r98"
+      ]
+    },
+    {
+      "phase": "real_bbb_alternating_shots:baseline",
+      "decision": "incomplete_with_out_of_window_sequence",
+      "answer_available": true,
+      "task_complete": false,
+      "citation_status": "valid_frame_ids_but_most_cited_frames_outside_question_window",
+      "reason": "13–17秒内实际只采到14.8秒白兔；不能据此回答三只动物与重复切镜。回答承认抽帧不足，但继续叙述20.8和26.4秒，超出题目只看13–17秒的范围。画面支持这些窗口外角色，故不是凭空编造，但不能算按题完成。",
+      "request_sha256": "bae06fc0f3b04cbcf560521392adb22fe17cc215769093bb024bc263791c46d9",
+      "reused_from": null,
+      "manual_review": true,
+      "frozen_interval_hits": 0,
+      "frozen_interval_total": 4,
+      "actual_selected_frame_review": "14.8秒白兔有证据；0/4仅表示没有落入冻结窄区间，不表示毫无相关画面。",
+      "out_of_question_window_citations": [
+        "frame290",
+        "frame440",
+        "frame520",
+        "frame660"
+      ],
+      "unsupported_material_claim": false,
+      "scope_violation": true,
+      "answer_text_sha256": "e5f7b5bf3759669e2a425a41fa85768a7bb8135b809bd61e818d4abca3e21b86",
+      "reported_uncertain": true,
+      "evidence_ids": [
+        "frame290",
+        "frame370",
+        "frame440",
+        "frame520",
+        "frame660"
+      ]
+    },
+    {
+      "phase": "real_bbb_alternating_shots:optimized",
+      "decision": "pass",
+      "answer_available": true,
+      "task_complete": true,
+      "citation_status": "present_and_supports_sequence",
+      "reason": "直接查看提交给模型的实际帧：13.2秒三只动物；14.0/14.4秒白兔；15.6秒三只动物再次出现；16.0秒白兔近景；16.8秒字幕。答案数量、主要顺序、最后字幕和动画判断均有帧支持。小动物物种外形类比并非必要，但使用“状”限定，未影响主要事实。",
+      "request_sha256": "c54a3374de66b258d9bce21288323eb80f2dafb26b52a1b80d2bb69e6525b135",
+      "reused_from": null,
+      "manual_review": true,
+      "frozen_interval_hits": 3,
+      "frozen_interval_total": 4,
+      "actual_semantic_events_supported": 4,
+      "actual_semantic_events_total": 4,
+      "interval_boundary_note": "首帧13.2位于冻结首事件13.3–13.8窄窗之外，但肉眼可见三只动物。保持原标签与3/4指标，不为结果扩窗；另记录语义支持完整。",
+      "unsupported_material_claim": false,
+      "overclaim_detected": false,
+      "answer_text_sha256": "b9de1c49012481f689e34c949ba0d1955f98d1c195d993ca3eba30b2dc6a5c5f",
+      "reported_uncertain": false,
+      "evidence_ids": [
+        "frame330",
+        "frame350",
+        "frame390",
+        "frame400",
+        "frame420"
+      ]
+    },
+    {
+      "phase": "real_bbb_action_order:baseline",
+      "decision": "safe_abstention_incomplete",
+      "answer_available": true,
+      "task_complete": false,
+      "citation_status": "valid_in_window_frame_supports_partial_answer",
+      "reason": "20.8秒确实有三只林中动物；19–23秒其余所需弓、红色动物特写、灰色动物抱果未被该均匀样本覆盖。答案明确不能判断完整顺序/抱持物/是否射中，属于合适弃答，完整任务仍未完成。",
+      "request_sha256": "4d2f4275298fbc80c6da92ad618c841341abf16eaece7e3b589ea6e2d092b865",
+      "reused_from": null,
+      "manual_review": true,
+      "frozen_interval_hits": 0,
+      "frozen_interval_total": 4,
+      "actual_selected_frame_review": "20.8秒在冻结20.0–20.7窄窗之外，仍清楚是三只动物。0/4不能解释为零相关视觉证据。",
+      "unsupported_material_claim": false,
+      "uncertainty_appropriate": true,
+      "answer_text_sha256": "e0f2398b34ecf8028a2f69fe046d09b9f84d2b3a21392139a9fcbc8533b31425",
+      "reported_uncertain": true,
+      "evidence_ids": [
+        "frame520"
+      ]
+    },
+    {
+      "phase": "real_bbb_action_order:optimized",
+      "decision": "unreviewable_invalid_output",
+      "answer_available": false,
+      "task_complete": false,
+      "citation_status": "unavailable",
+      "reason": "HTTP 200返回且usage已记录，但模型输出未通过客户端校验，没有保存可接受答案或原始响应。无法判断其语义内容或具体校验失败原因；不重试，不把降低输入token解释为本题质量改善。",
+      "request_sha256": "39930746c3f5aa8d3e45f533914ecb4cda64e3ba3cc9f14b6cbf949e2d5dc397",
+      "reused_from": null,
+      "manual_review": true,
+      "frozen_interval_hits": 3,
+      "frozen_interval_total": 4,
+      "semantic_answer_judgment": null,
+      "paid_attempt_retained": true,
+      "retry_performed": false
+    }
+  ]
+}

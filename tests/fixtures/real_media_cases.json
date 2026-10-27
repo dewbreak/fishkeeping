@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "frozen_on": "2026-10-28",
+  "annotation_method": "Source bytes were hashed, photographs and PDF pages visually inspected, and video frames inspected at 0.5-second intervals before any model evaluation. Labels must not be changed to fit model outputs.",
+  "scope": "Small real-photo detail and real-publication table diagnostic; two non-overlapping questions on one animated trailer, not a live-action or long-video benchmark.",
+  "assets": {
+    "coffee": {
+      "filename": "coffee.png",
+      "url": "https://raw.githubusercontent.com/scikit-image/scikit-image/6b22cec0d2fc154bc25c508675fe76f6f4e1402e/src/_skimage2/data/coffee.png",
+      "sha256": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7",
+      "bytes": 466706,
+      "max_bytes": 500000,
+      "author": "Rachel Michetti; courtesy Pikolo Espresso Bar",
+      "license": "CC0-1.0",
+      "license_url": "https://scikit-image.org/docs/stable/api/skimage.data.html#skimage.data.coffee",
+      "revision": "6b22cec0d2fc154bc25c508675fe76f6f4e1402e"
+    },
+    "rocket": {
+      "filename": "rocket.jpg",
+      "url": "https://raw.githubusercontent.com/scikit-image/scikit-image/6b22cec0d2fc154bc25c508675fe76f6f4e1402e/src/_skimage2/data/rocket.jpg",
+      "sha256": "c2dd0de7c538df8d111e479619b129464d0269d0ae5fd18ca91d33a7fdfea95c",
+      "bytes": 112525,
+      "max_bytes": 150000,
+      "author": "SpaceX",
+      "license": "Public domain, as documented by scikit-image for this specific photograph",
+      "license_url": "https://scikit-image.org/docs/stable/api/skimage.data.html#skimage.data.rocket",
+      "revision": "6b22cec0d2fc154bc25c508675fe76f6f4e1402e"
+    },
+    "usda_crop1024": {
+      "filename": "usda_crop1024.pdf",
+      "url": "https://www.nass.usda.gov/Publications/Todays_Reports/reports/crop1024.pdf",
+      "sha256": "4b51197217b21ff92572b74b075d7a4082a1472d7661fdd81f4fe7a7f1878ba0",
+      "bytes": 1352772,
+      "max_bytes": 1500000,
+      "author": "U.S. Department of Agriculture, National Agricultural Statistics Service, Agricultural Statistics Board",
+      "license": "US government work / public-domain statistical tables; USDA requests attribution. Selected pages credit USDA NASS and contain no third-party copyright credit.",
+      "license_url": "https://www.usda.gov/about-usda/policies-and-links",
+      "license_basis": "USDA Digital Rights and Copyright permits distribution of public-domain material and identifies exceptions; report title page states released by USDA NASS Agricultural Statistics Board, and selected table pages carry USDA NASS attribution. Not inferred solely from the .gov domain.",
+      "revision": "Crop Production, released 2024-10-11; byte identity locked by SHA-256"
+    },
+    "bbb_trailer": {
+      "filename": "bbb_trailer.mp4",
+      "url": "https://media.w3.org/2010/05/bunny/trailer.mp4",
+      "sha256": "b2ded9ae5a20fa36ca8cec49ef923bffb5e1a51d9e8c1f8336273d2fa9d35ff0",
+      "bytes": 11053871,
+      "max_bytes": 12000000,
+      "author": "Blender Foundation / Peach open movie project",
+      "attribution": "(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org",
+      "license": "CC-BY-3.0",
+      "license_url": "https://peach.blender.org/about/",
+      "revision": "W3C 2010/05 mirror; byte identity locked by SHA-256",
+      "media_type": "animation",
+      "duration_seconds": 32.44,
+      "frame_count": 812
+    }
+  },
+  "cases": [
+    {
+      "id": "real_coffee_spatial",
+      "kind": "photo",
+      "asset": "coffee",
+      "question": "仅按画面回答：杯子和金属勺各有几个？杯柄位于杯身的左下还是右上？勺子的匙碗在杯子的哪一侧、勺柄指向哪一侧？杯碟和桌面分别是什么颜色或材质？不要推测拍摄地点或咖啡品牌。",
+      "expected_any_groups": [["一个杯", "1个杯", "一只杯", "杯子1", "杯子：1", "杯子：一个"], ["一把", "一个勺", "1把", "1个勺"], ["左下"], ["右下", "右侧"], ["右上"], ["红褐", "棕红", "棕色", "红色"], ["木"]],
+      "reference_answer": "一个杯子、一把金属勺；杯柄朝画面左下，勺碗位于杯子的右下方，勺柄指向右上方；杯碟红褐色，桌面有木纹。",
+      "forbidden_claims": ["两个杯子", "两把勺子", "咖啡品牌是"],
+      "limits": "Small object/spatial-relation diagnostic, not representative coverage of crowded real scenes."
+    },
+    {
+      "id": "real_rocket_structure",
+      "kind": "photo",
+      "asset": "rocket",
+      "question": "仅按画面回答：中央有几枚火箭？把画面两边被裁切的大型格构塔也计入，火箭左边和右边各有几座高塔？天空和地面灯光是什么状态？图像是否足以确认火箭已经离地起飞？不要用背景知识补充任务名称。",
+      "expected_any_groups": [["一枚", "1枚", "一台", "一个火箭"], ["左边两", "左侧两", "左右各两", "各2", "各两", "左边2", "左侧2"], ["四座", "4座", "各两", "各2"], ["蓝", "暗", "夜", "暮"], ["灯", "光"], ["不能", "无法", "不足", "未见", "没有", "未起飞", "未离地"]],
+      "reference_answer": "中央一枚火箭；左侧两座、右侧两座高塔，共四座（最外两座部分裁切）；天空暗蓝，地面照明亮着。火箭仍与地面设施连接，画面不能确认已经离地起飞。",
+      "forbidden_claims": ["已经起飞", "正在升空", "已经离地"],
+      "limits": "One static photograph cannot establish motion, launch time, mission identity, or success."
+    },
+    {
+      "id": "real_usda_corn_multilevel",
+      "kind": "table",
+      "asset": "usda_crop1024",
+      "render": {"page": 6, "dpi": 130, "filename": "usda_corn.png", "reference_sha256": "9150fce9ca735cf09526c446ea244e229592e9b3690d6315e5b52bbc7dd4d88a", "reference_renderer": "pdftoppm 26.07.0"},
+      "question": "读取该表并保留单位：United States的2024年收获面积、2024年9月1日单产、10月1日单产、2024年产量各是多少？Iowa的2023年产量与2024年产量分别是多少？Other States脚注是否包含California和Texas？不要把2023列或9月预测错当10月预测。",
+      "expected_any_groups": [["82,710", "82710"], ["183.6"], ["183.8"], ["15,203,309", "15203309"], ["2,522,550", "2522550"], ["2,642,900", "2642900"], ["千英亩", "1,000 acres", "1000 acres"], ["蒲式耳", "bushel"], ["千蒲式耳", "1,000 bushels", "1000 bushels"], ["California", "加利福尼亚"], ["Texas", "得克萨斯", "德克萨斯"], ["不包含", "不包括", "未包含", "未包括"]],
+      "reference_answer": "美国2024收获面积82,710千英亩；9月1日单产183.6蒲式耳/英亩，10月1日183.8；2024产量15,203,309千蒲式耳。Iowa产量2023为2,522,550、2024为2,642,900千蒲式耳。Other States脚注包含California，不包含Texas（Texas单列）。",
+      "numeric_cells": {"US.area.2024.thousand_acres": 82710, "US.yield.2024-09-01.bushels_per_acre": 183.6, "US.yield.2024-10-01.bushels_per_acre": 183.8, "US.production.2024.thousand_bushels": 15203309, "Iowa.production.2023.thousand_bushels": 2522550, "Iowa.production.2024.thousand_bushels": 2642900},
+      "forbidden_claims": []
+    },
+    {
+      "id": "real_usda_rice_two_tables",
+      "kind": "table",
+      "asset": "usda_crop1024",
+      "render": {"page": 9, "dpi": 130, "filename": "usda_rice.png", "reference_sha256": "54ebb48ea3cdf9528dff0338e046c59aacb5aaaa0f78362d4b78b2ac49d9e66a", "reference_renderer": "pdftoppm 26.07.0"},
+      "question": "同时读取上下两张水稻表并保留单位：California在2024年9月1日与10月1日的单产分别多少？美国2024总产量是多少？下表2024年的长粒、中粒、短粒产量分别多少，合计是否等于总产量？脚注把甜米计入哪个类别？注意单产和产量使用不同单位。",
+      "expected_any_groups": [["8,800", "8800"], ["8,650", "8650"], ["219,812", "219812"], ["166,808", "166808"], ["51,481", "51481"], ["1,523", "1523"], ["磅", "pound"], ["千英担", "千美担", "千担", "1,000 cwt", "1000 cwt"], ["相等", "等于", "一致"], ["短粒", "short grain"]],
+      "reference_answer": "California单产9月8,800、10月8,650磅/英亩。美国2024产量219,812千cwt；长粒166,808、中粒51,481、短粒1,523千cwt，合计219,812与总量相等。甜米计入短粒。cwt是100磅，不是蒲式耳。",
+      "numeric_cells": {"California.yield.2024-09-01.pounds_per_acre": 8800, "California.yield.2024-10-01.pounds_per_acre": 8650, "US.production.2024.thousand_cwt": 219812, "US.long_grain.2024.thousand_cwt": 166808, "US.medium_grain.2024.thousand_cwt": 51481, "US.short_grain.2024.thousand_cwt": 1523},
+      "forbidden_claims": ["产量单位是蒲式耳", "甜米计入长粒"]
+    },
+    {
+      "id": "real_bbb_alternating_shots",
+      "kind": "video",
+      "asset": "bbb_trailer",
+      "start_seconds": 13.0,
+      "end_seconds": 17.0,
+      "question": "只看13至17秒：树旁一起出现的小动物有几只？随后镜头切换到什么主要角色？小动物组合是否再次出现、之后又切回谁？按顺序回答，并说明这是动画还是实拍。若抽帧不足以确定顺序，请明确说无法确认。",
+      "expected_any_groups": [["三只", "3只"], ["白兔", "兔子", "大兔"], ["再次", "又出现", "又回到", "切回"], ["动画"]],
+      "reference_answer": "13秒标题之后，约13.5秒树旁三只小动物；约14至14.5秒白兔全身；约15至15.5秒三只小动物再次出现；约16至16.5秒切回白兔近景。这是动画。",
+      "evidence_intervals": [{"start": 13.3, "end": 13.8, "event": "three rodents beside tree"}, {"start": 14.0, "end": 14.6, "event": "white rabbit full body"}, {"start": 14.9, "end": 15.6, "event": "rodents return"}, {"start": 16.0, "end": 16.7, "event": "rabbit close-up"}],
+      "expected_sequence": ["three rodents", "white rabbit", "three rodents", "white rabbit"],
+      "forbidden_claims": ["这是实拍", "真实拍摄"],
+      "limits": "start_seconds/end_seconds express the time window explicitly stated in the question and may be supplied as request parameters. evidence_intervals and expected_sequence are scoring-only labels and must never be supplied to the selector or model. The planned comparison combines full-video uniform/original versus question-window adaptive/low; it is not an isolated sampler comparison. Keywords alone do not prove temporal correctness."
+    },
+    {
+      "id": "real_bbb_action_order",
+      "kind": "video",
+      "asset": "bbb_trailer",
+      "start_seconds": 19.0,
+      "end_seconds": 23.0,
+      "question": "只看19至23秒，按镜头顺序说明：白兔先在操作什么；接着是几只林中小动物；随后哪个颜色动物的面部出现特写；最后灰色动物抱着什么？这些画面能否确认箭射中了某只动物？不要补充片段之外的剧情，抽帧未覆盖的部分请说明。",
+      "expected_any_groups": [["弓", "木杆", "绿绳"], ["三只", "3只"], ["红", "棕红"], ["灰"], ["坚果", "果实", "橡果"], ["无法", "不能", "不足", "未见", "没有", "不确定"]],
+      "reference_answer": "约19至19.5秒白兔拉弓样木杆和绿绳；约20至20.5秒三只小动物；约21至21.5秒红色长耳动物面部特写；约22至22.5秒灰色动物抱着棕色坚果。片段不能确认箭射中某只动物。",
+      "evidence_intervals": [{"start": 19.0, "end": 19.7, "event": "rabbit holding bow and arrow"}, {"start": 20.0, "end": 20.7, "event": "three rodents in forest"}, {"start": 21.0, "end": 21.7, "event": "red rodent close-up"}, {"start": 22.0, "end": 22.7, "event": "grey rodent holding brown nut"}],
+      "expected_sequence": ["rabbit bow", "three rodents", "red rodent close-up", "grey rodent with nut"],
+      "forbidden_claims": ["射中了松鼠", "射中了灰色动物", "已经射中"],
+      "limits": "Same full source as other video case; no clip is generated. Request start_seconds/end_seconds may restrict analysis to the window explicitly stated in the question. Fine-grained evidence_intervals remain scoring-only and must not influence sampling. Baseline and optimized routes use different analysis windows, frame caps and image detail."
+    }
+  ]
+}

@@ -1,0 +1,642 @@
+{
+  "started_at": "2026-10-27T19:06:18.520343+00:00",
+  "status": "failed_no_retry",
+  "fixture_sha256": "255a9affb46eed171c6414da3aa4cb746cf8c9182a1a06590ea272bb6caf7446",
+  "planned_variants": 12,
+  "unique_requests": 11,
+  "max_calls": 12,
+  "max_reserved_cost_usd": 0.05,
+  "planned_reserved_cost_usd": 0.0335865,
+  "pricing_snapshot_date": "2026-10-28",
+  "price_basis": "Peak cache-miss $0.30/M input and $1.20/M output; not a billing receipt",
+  "score_note": "Term matches are diagnostics, not correctness. Manually review semantics, negation, table associations/units, and temporal order against frozen references.",
+  "video_comparison": "Full-video uniform12/original versus explicit-question-window adaptive6/low; a combined-policy comparison, not an isolated sampler ablation.",
+  "skipped_reserved_phases": [],
+  "results": [
+    {
+      "phase": "real_coffee_spatial:baseline",
+      "request_sha256": "0d777825790ec80cc1a12e30f98f43b0ae5833a6520cf8a7be8ad0b7b733061b",
+      "reused_from": null,
+      "term_groups_matched": 7,
+      "term_groups_total": 7,
+      "term_matches": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "uncertain": false,
+      "evidence_ids": [
+        "image0"
+      ],
+      "usage": {
+        "prompt_tokens": 361,
+        "completion_tokens": 65,
+        "total_tokens": 426,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 361
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_coffee_spatial:optimized",
+      "request_sha256": "cbf8345d22f2fad9b6e3e6dc0e5611521d2cab5cf30b33a272492e3e90ad67e9",
+      "reused_from": null,
+      "term_groups_matched": 7,
+      "term_groups_total": 7,
+      "term_matches": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "uncertain": false,
+      "evidence_ids": [
+        "image0"
+      ],
+      "usage": {
+        "prompt_tokens": 361,
+        "completion_tokens": 84,
+        "total_tokens": 445,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 361
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_rocket_structure:baseline",
+      "request_sha256": "5084aff833526399aa679ba5cad41b6d8800d6c2c0dd0605d9982cd7fd55dc2a",
+      "reused_from": null,
+      "term_groups_matched": 4,
+      "term_groups_total": 6,
+      "term_matches": [
+        true,
+        false,
+        false,
+        true,
+        true,
+        true
+      ],
+      "uncertain": false,
+      "evidence_ids": [
+        "image0"
+      ],
+      "usage": {
+        "prompt_tokens": 364,
+        "completion_tokens": 88,
+        "total_tokens": 452,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 364
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_rocket_structure:optimized",
+      "request_sha256": "87b93fee1872df898286ef37eaa6055259dab6e3bf2ad2691b8775e34fe30f28",
+      "reused_from": null,
+      "term_groups_matched": 4,
+      "term_groups_total": 6,
+      "term_matches": [
+        true,
+        false,
+        false,
+        true,
+        true,
+        true
+      ],
+      "uncertain": true,
+      "evidence_ids": [
+        "image0"
+      ],
+      "usage": {
+        "prompt_tokens": 364,
+        "completion_tokens": 96,
+        "total_tokens": 460,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 364
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_usda_corn_multilevel:baseline",
+      "request_sha256": "4aa2f02a06136c558618d1d9044084827d59b28f8561459b32f2f50813a11e05",
+      "reused_from": null,
+      "term_groups_matched": 12,
+      "term_groups_total": 12,
+      "term_matches": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "uncertain": false,
+      "evidence_ids": [],
+      "usage": {
+        "prompt_tokens": 1178,
+        "completion_tokens": 132,
+        "total_tokens": 1310,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 1178
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_usda_corn_multilevel:optimized",
+      "request_sha256": "4aa2f02a06136c558618d1d9044084827d59b28f8561459b32f2f50813a11e05",
+      "reused_from": "real_usda_corn_multilevel:baseline",
+      "term_groups_matched": 12,
+      "term_groups_total": 12,
+      "term_matches": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "uncertain": false,
+      "evidence_ids": [],
+      "usage": {
+        "prompt_tokens": 1178,
+        "completion_tokens": 132,
+        "total_tokens": 1310,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 1178
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_usda_rice_two_tables:baseline",
+      "request_sha256": "56690c92ca9f1cd8f5dd5b6faa76f81dec5003d67257b9cd1163e4e02125b064",
+      "reused_from": null,
+      "term_groups_matched": 9,
+      "term_groups_total": 10,
+      "term_matches": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "uncertain": false,
+      "evidence_ids": [
+        "image0"
+      ],
+      "usage": {
+        "prompt_tokens": 1175,
+        "completion_tokens": 120,
+        "total_tokens": 1295,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 1175
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_usda_rice_two_tables:optimized",
+      "request_sha256": "877bb1768ab669c468dcf33aead0be213e76767474af5a280317ba3129f732cd",
+      "reused_from": null,
+      "term_groups_matched": 9,
+      "term_groups_total": 10,
+      "term_matches": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "uncertain": false,
+      "evidence_ids": [
+        "r32",
+        "r33",
+        "r34",
+        "r97",
+        "r94",
+        "r95",
+        "r96",
+        "r98"
+      ],
+      "usage": {
+        "prompt_tokens": 2063,
+        "completion_tokens": 136,
+        "total_tokens": 2199,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 2063
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_bbb_alternating_shots:baseline",
+      "request_sha256": "bae06fc0f3b04cbcf560521392adb22fe17cc215769093bb024bc263791c46d9",
+      "reused_from": null,
+      "term_groups_matched": 4,
+      "term_groups_total": 4,
+      "term_matches": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "uncertain": true,
+      "evidence_ids": [
+        "frame290",
+        "frame370",
+        "frame440",
+        "frame520",
+        "frame660"
+      ],
+      "usage": {
+        "prompt_tokens": 3553,
+        "completion_tokens": 118,
+        "total_tokens": 3671,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 3553
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_bbb_alternating_shots:optimized",
+      "request_sha256": "c54a3374de66b258d9bce21288323eb80f2dafb26b52a1b80d2bb69e6525b135",
+      "reused_from": null,
+      "term_groups_matched": 4,
+      "term_groups_total": 4,
+      "term_matches": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "uncertain": false,
+      "evidence_ids": [
+        "frame330",
+        "frame350",
+        "frame390",
+        "frame400",
+        "frame420"
+      ],
+      "usage": {
+        "prompt_tokens": 1454,
+        "completion_tokens": 91,
+        "total_tokens": 1545,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 1454
+      },
+      "manual_review_required": true
+    },
+    {
+      "phase": "real_bbb_action_order:baseline",
+      "request_sha256": "4d2f4275298fbc80c6da92ad618c841341abf16eaece7e3b589ea6e2d092b865",
+      "reused_from": null,
+      "term_groups_matched": 3,
+      "term_groups_total": 6,
+      "term_matches": [
+        false,
+        true,
+        false,
+        true,
+        false,
+        true
+      ],
+      "uncertain": true,
+      "evidence_ids": [
+        "frame520"
+      ],
+      "usage": {
+        "prompt_tokens": 3557,
+        "completion_tokens": 124,
+        "total_tokens": 3681,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 3557
+      },
+      "manual_review_required": true
+    }
+  ],
+  "ledger": {
+    "version": 1,
+    "max_calls": 12,
+    "max_cost_nano_usd": 50000000,
+    "entries": [
+      {
+        "id": "8c2487167adc49cc8ded2dcf0809794c",
+        "phase": "real_coffee_spatial:baseline",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:19.636008+00:00",
+        "request_sha256": "0d777825790ec80cc1a12e30f98f43b0ae5833a6520cf8a7be8ad0b7b733061b",
+        "text_utf8_bytes_upper_bound": 950,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2294,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1917000,
+        "reserved_cost_usd": 0.001917,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 361,
+          "completion_tokens": 65,
+          "total_tokens": 426,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 361
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0001863,
+        "bound_exceeded": false,
+        "latency_seconds": 1.3257
+      },
+      {
+        "id": "2ed59c03ca064383a2b3c3e9dd21e847",
+        "phase": "real_coffee_spatial:optimized",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:21.018560+00:00",
+        "request_sha256": "cbf8345d22f2fad9b6e3e6dc0e5611521d2cab5cf30b33a272492e3e90ad67e9",
+        "text_utf8_bytes_upper_bound": 945,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2289,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1915500,
+        "reserved_cost_usd": 0.0019155,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 361,
+          "completion_tokens": 84,
+          "total_tokens": 445,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 361
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0002091,
+        "bound_exceeded": false,
+        "latency_seconds": 1.5594
+      },
+      {
+        "id": "0e9b725bc6574968ad5592cc98858c96",
+        "phase": "real_rocket_structure:baseline",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:22.616311+00:00",
+        "request_sha256": "5084aff833526399aa679ba5cad41b6d8800d6c2c0dd0605d9982cd7fd55dc2a",
+        "text_utf8_bytes_upper_bound": 974,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2318,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1924200,
+        "reserved_cost_usd": 0.0019242,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 364,
+          "completion_tokens": 88,
+          "total_tokens": 452,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 364
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0002148,
+        "bound_exceeded": false,
+        "latency_seconds": 1.072
+      },
+      {
+        "id": "3f681e744a85431ebd6c46c4f61583a3",
+        "phase": "real_rocket_structure:optimized",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:23.716777+00:00",
+        "request_sha256": "87b93fee1872df898286ef37eaa6055259dab6e3bf2ad2691b8775e34fe30f28",
+        "text_utf8_bytes_upper_bound": 969,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2313,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1922700,
+        "reserved_cost_usd": 0.0019227,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 364,
+          "completion_tokens": 96,
+          "total_tokens": 460,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 364
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0002244,
+        "bound_exceeded": false,
+        "latency_seconds": 1.3419
+      },
+      {
+        "id": "0896bb8a26ee4c92a4d29cf21935f18f",
+        "phase": "real_usda_corn_multilevel:baseline",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:25.094162+00:00",
+        "request_sha256": "4aa2f02a06136c558618d1d9044084827d59b28f8561459b32f2f50813a11e05",
+        "text_utf8_bytes_upper_bound": 993,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2337,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1929900,
+        "reserved_cost_usd": 0.0019299,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 1178,
+          "completion_tokens": 132,
+          "total_tokens": 1310,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 1178
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0005118,
+        "bound_exceeded": false,
+        "latency_seconds": 1.6862
+      },
+      {
+        "id": "ccd94e801af34009ba50ce3032f3c212",
+        "phase": "real_usda_rice_two_tables:baseline",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:26.836649+00:00",
+        "request_sha256": "56690c92ca9f1cd8f5dd5b6faa76f81dec5003d67257b9cd1163e4e02125b064",
+        "text_utf8_bytes_upper_bound": 1016,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2360,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1936800,
+        "reserved_cost_usd": 0.0019368,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 1175,
+          "completion_tokens": 120,
+          "total_tokens": 1295,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 1175
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0004965,
+        "bound_exceeded": false,
+        "latency_seconds": 1.0903
+      },
+      {
+        "id": "49a62e66dd734479b00d536e53aaba46",
+        "phase": "real_usda_rice_two_tables:optimized",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:27.950807+00:00",
+        "request_sha256": "877bb1768ab669c468dcf33aead0be213e76767474af5a280317ba3129f732cd",
+        "text_utf8_bytes_upper_bound": 5592,
+        "framing_token_allowance": 320,
+        "image_count": 0,
+        "image_token_upper_bound": 0,
+        "input_token_upper_bound": 5912,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 3002400,
+        "reserved_cost_usd": 0.0030024,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 2063,
+          "completion_tokens": 136,
+          "total_tokens": 2199,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2063
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0007821,
+        "bound_exceeded": false,
+        "latency_seconds": 1.2715
+      },
+      {
+        "id": "4dedee296aa645a2a1e1b7623b877f68",
+        "phase": "real_bbb_alternating_shots:baseline",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:29.279547+00:00",
+        "request_sha256": "bae06fc0f3b04cbcf560521392adb22fe17cc215769093bb024bc263791c46d9",
+        "text_utf8_bytes_upper_bound": 2554,
+        "framing_token_allowance": 320,
+        "image_count": 12,
+        "image_token_upper_bound": 12288,
+        "input_token_upper_bound": 15162,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 5777400,
+        "reserved_cost_usd": 0.0057774,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 3553,
+          "completion_tokens": 118,
+          "total_tokens": 3671,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 3553
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0012075,
+        "bound_exceeded": false,
+        "latency_seconds": 2.3729
+      },
+      {
+        "id": "2dc8ca3a7a63428ebdeb660f1039a319",
+        "phase": "real_bbb_alternating_shots:optimized",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:31.714132+00:00",
+        "request_sha256": "c54a3374de66b258d9bce21288323eb80f2dafb26b52a1b80d2bb69e6525b135",
+        "text_utf8_bytes_upper_bound": 1879,
+        "framing_token_allowance": 320,
+        "image_count": 6,
+        "image_token_upper_bound": 6144,
+        "input_token_upper_bound": 8343,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 3731700,
+        "reserved_cost_usd": 0.0037317,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 1454,
+          "completion_tokens": 91,
+          "total_tokens": 1545,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 1454
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0005454,
+        "bound_exceeded": false,
+        "latency_seconds": 2.0857
+      },
+      {
+        "id": "ca2d145e1cc34123b780beb3176435ed",
+        "phase": "real_bbb_action_order:baseline",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:33.879442+00:00",
+        "request_sha256": "4d2f4275298fbc80c6da92ad618c841341abf16eaece7e3b589ea6e2d092b865",
+        "text_utf8_bytes_upper_bound": 2587,
+        "framing_token_allowance": 320,
+        "image_count": 12,
+        "image_token_upper_bound": 12288,
+        "input_token_upper_bound": 15195,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 5787300,
+        "reserved_cost_usd": 0.0057873,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 3557,
+          "completion_tokens": 124,
+          "total_tokens": 3681,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 3557
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0012159,
+        "bound_exceeded": false,
+        "latency_seconds": 2.3899
+      },
+      {
+        "id": "e6ef0ffaead543bf9881c0e5f1f3b1a1",
+        "phase": "real_bbb_action_order:optimized",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T19:06:36.364715+00:00",
+        "request_sha256": "39930746c3f5aa8d3e45f533914ecb4cda64e3ba3cc9f14b6cbf949e2d5dc397",
+        "text_utf8_bytes_upper_bound": 1912,
+        "framing_token_allowance": 320,
+        "image_count": 6,
+        "image_token_upper_bound": 6144,
+        "input_token_upper_bound": 8376,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 3741600,
+        "reserved_cost_usd": 0.0037416,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 1458,
+          "completion_tokens": 162,
+          "total_tokens": 1620,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 1458
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0006318,
+        "bound_exceeded": false,
+        "latency_seconds": 2.161
+      }
+    ]
+  },
+  "error_type": "ProviderError",
+  "attempted_paid_calls": 11,
+  "unknown_usage_calls": 0,
+  "known_usage_peak_cost_subtotal_usd": 0.0062255999999999995,
+  "usage_based_peak_cost_estimate_usd": 0.0062255999999999995,
+  "reserved_cost_usd": 0.0335865
+}

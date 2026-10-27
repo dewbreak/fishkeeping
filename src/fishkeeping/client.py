@@ -27,6 +27,7 @@ from fishkeeping.models import (
     Scope,
     SourcePage,
 )
+from fishkeeping.video_models import VideoEventRequest, VideoEvidence, VideoRequest
 from fishkeeping.vision_models import (
     ImageEventRequest,
     ImageEventResponse,
@@ -98,6 +99,32 @@ class MemoryClient:
                 f"/v1/memories/{quote(memory_id, safe='')}",
                 params={**self.scope.model_dump(), "include_inactive": include_inactive},
             )
+        )
+
+    def analyze_video(self, video: bytes, question: str, **kwargs) -> VideoEvidence:
+        body = VideoRequest(
+            scope=self.scope,
+            video_base64=base64.b64encode(video).decode("ascii"),
+            question=question,
+            **kwargs,
+        )
+        return VideoEvidence.model_validate(
+            self._request("POST", "/v1/videos/analyze", json=body.model_dump(mode="json"))
+        )
+
+    def enqueue_video(
+        self, video: bytes, question: str, event_id: str, session_id: str, **kwargs
+    ) -> EventResponse:
+        body = VideoEventRequest(
+            scope=self.scope,
+            video_base64=base64.b64encode(video).decode("ascii"),
+            question=question,
+            event_id=event_id,
+            session_id=session_id,
+            **kwargs,
+        )
+        return EventResponse.model_validate(
+            self._request("POST", "/v1/videos/events", json=body.model_dump(mode="json"))
         )
 
     def list(

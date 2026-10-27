@@ -39,6 +39,9 @@ from fishkeeping.models import (
 from fishkeeping.providers import DeepSeekProvider, ProviderError
 from fishkeeping.service import MemoryService, NotConfiguredError
 from fishkeeping.storage import ConflictError, InvalidSourceError, NotFoundError, Store
+from fishkeeping.video import VideoBusyError, VideoProcessor
+from fishkeeping.video_events import enqueue_video
+from fishkeeping.video_models import VideoEventRequest, VideoEvidence, VideoRequest
 from fishkeeping.vision import ImageInputError, ImageProcessor
 from fishkeeping.vision_events import enqueue_image
 from fishkeeping.vision_models import (
@@ -52,6 +55,7 @@ from fishkeeping.vision_models import (
 def create_app(settings: Settings | None = None, service: MemoryService | None = None) -> FastAPI:
     settings = settings or Settings()
     images = ImageProcessor()
+    videos = VideoProcessor()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -78,6 +82,7 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
 
     app = FastAPI(title="Fishkeeping Memory API", version=__version__, lifespan=lifespan)
     app.state.images = images
+    app.state.videos = videos
 
     def current_service(request: Request) -> MemoryService:
         return request.app.state.service
@@ -124,6 +129,10 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
     @app.exception_handler(ImageInputError)
     async def image_handler(request: Request, exc: ImageInputError):
         return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+    @app.exception_handler(VideoBusyError)
+    async def video_busy_handler(request: Request, exc: VideoBusyError):
+        return JSONResponse(status_code=429, content={"detail": "Local video decoder is busy"})
 
     @app.exception_handler(NotConfiguredError)
     async def config_handler(request: Request, exc: NotConfiguredError):
@@ -288,6 +297,20 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
     ):
         authorize(body.scope, namespace)
         return svc.index(body)
+
+    @app.post("/v1/videos/analyze", response_model=VideoEvidence)
+    def analyze_video(body: VideoRequest, namespace: str | None = Depends(principal)):
+        authorize(body.scope, namespace)
+        return app.state.videos.analyze(body)
+
+    @app.post("/v1/videos/events", response_model=EventResponse, status_code=202)
+    def video_event(
+        body: VideoEventRequest,
+        namespace: str | None = Depends(principal),
+        queue: EventQueue = Depends(current_queue),
+    ):
+        authorize(body.scope, namespace)
+        return enqueue_video(body, queue, app.state.videos)
 
     @app.post("/v1/recall", response_model=RecallResponse)
     def recall(

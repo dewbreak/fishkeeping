@@ -1,0 +1,45 @@
+{
+  "validated_on": "2026-10-28",
+  "validation_timezone": "\u4e2d\u56fd\u6807\u51c6\u65f6\u95f4",
+  "kind": "actual_loopback_http_with_cached_public_media",
+  "implementation": "scripts/smoke_media.py",
+  "status": "passed",
+  "paid_calls": 0,
+  "downloads": 0,
+  "cases": [
+    {
+      "id": "real_coffee_spatial",
+      "kind": "photo",
+      "input_sha256": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7",
+      "input_bytes": 466706,
+      "selected_evidence_count": 0,
+      "requires_review": true,
+      "audit_chars": 393,
+      "lifecycle": "analyze,event,replay,conflict,scope,source,forget,tombstone",
+      "elapsed_seconds": 0.172
+    },
+    {
+      "id": "real_usda_rice_two_tables",
+      "kind": "table",
+      "input_sha256": "54ebb48ea3cdf9528dff0338e046c59aacb5aaaa0f78362d4b78b2ac49d9e66a",
+      "input_bytes": 125640,
+      "selected_evidence_count": 104,
+      "requires_review": true,
+      "audit_chars": 5774,
+      "lifecycle": "analyze,event,replay,conflict,scope,source,forget,tombstone",
+      "elapsed_seconds": 4.804
+    },
+    {
+      "id": "real_bbb_alternating_shots",
+      "kind": "video",
+      "input_sha256": "b2ded9ae5a20fa36ca8cec49ef923bffb5e1a51d9e8c1f8336273d2fa9d35ff0",
+      "input_bytes": 11053871,
+      "selected_evidence_count": 6,
+      "requires_review": true,
+      "audit_chars": 2727,
+      "lifecycle": "analyze,event,replay,conflict,scope,source,forget,tombstone",
+      "elapsed_seconds": 5.582
+    }
+  ],
+  "elapsed_seconds": 11.459
+}

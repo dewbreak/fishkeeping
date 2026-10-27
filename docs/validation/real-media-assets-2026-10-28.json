@@ -1,0 +1,79 @@
+{
+  "checked_on": "2026-10-28",
+  "manifest_sha256": "34610570cf69810aeaae6e87b99dcd7d941b89515493b982a9d0fc7c8b9951ca",
+  "downloaded_source_bytes": 12985874,
+  "assets": [
+    {
+      "asset": "coffee",
+      "filename": "coffee.png",
+      "bytes": 466706,
+      "sha256": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7",
+      "url": "https://raw.githubusercontent.com/scikit-image/scikit-image/6b22cec0d2fc154bc25c508675fe76f6f4e1402e/src/_skimage2/data/coffee.png",
+      "author": "Rachel Michetti; courtesy Pikolo Espresso Bar",
+      "license": "CC0-1.0",
+      "license_url": "https://scikit-image.org/docs/stable/api/skimage.data.html#skimage.data.coffee",
+      "revision": "6b22cec0d2fc154bc25c508675fe76f6f4e1402e"
+    },
+    {
+      "asset": "rocket",
+      "filename": "rocket.jpg",
+      "bytes": 112525,
+      "sha256": "c2dd0de7c538df8d111e479619b129464d0269d0ae5fd18ca91d33a7fdfea95c",
+      "url": "https://raw.githubusercontent.com/scikit-image/scikit-image/6b22cec0d2fc154bc25c508675fe76f6f4e1402e/src/_skimage2/data/rocket.jpg",
+      "author": "SpaceX",
+      "license": "Public domain, as documented by scikit-image for this specific photograph",
+      "license_url": "https://scikit-image.org/docs/stable/api/skimage.data.html#skimage.data.rocket",
+      "revision": "6b22cec0d2fc154bc25c508675fe76f6f4e1402e"
+    },
+    {
+      "asset": "usda_crop1024",
+      "filename": "usda_crop1024.pdf",
+      "bytes": 1352772,
+      "sha256": "4b51197217b21ff92572b74b075d7a4082a1472d7661fdd81f4fe7a7f1878ba0",
+      "url": "https://www.nass.usda.gov/Publications/Todays_Reports/reports/crop1024.pdf",
+      "author": "U.S. Department of Agriculture, National Agricultural Statistics Service, Agricultural Statistics Board",
+      "license": "US government work / public-domain statistical tables; USDA requests attribution. Selected pages credit USDA NASS and contain no third-party copyright credit.",
+      "license_url": "https://www.usda.gov/about-usda/policies-and-links",
+      "revision": "Crop Production, released 2024-10-11; byte identity locked by SHA-256"
+    },
+    {
+      "asset": "bbb_trailer",
+      "filename": "bbb_trailer.mp4",
+      "bytes": 11053871,
+      "sha256": "b2ded9ae5a20fa36ca8cec49ef923bffb5e1a51d9e8c1f8336273d2fa9d35ff0",
+      "url": "https://media.w3.org/2010/05/bunny/trailer.mp4",
+      "author": "Blender Foundation / Peach open movie project",
+      "license": "CC-BY-3.0",
+      "license_url": "https://peach.blender.org/about/",
+      "revision": "W3C 2010/05 mirror; byte identity locked by SHA-256"
+    }
+  ],
+  "derived_images": [
+    {
+      "case": "real_usda_corn_multilevel",
+      "source_asset": "usda_crop1024",
+      "page": 6,
+      "dpi": 130,
+      "filename": "usda_corn.png",
+      "bytes": 223919,
+      "sha256": "9150fce9ca735cf09526c446ea244e229592e9b3690d6315e5b52bbc7dd4d88a",
+      "renderer": "pdftoppm 26.07.0",
+      "crop": null
+    },
+    {
+      "case": "real_usda_rice_two_tables",
+      "source_asset": "usda_crop1024",
+      "page": 9,
+      "dpi": 130,
+      "filename": "usda_rice.png",
+      "bytes": 125640,
+      "sha256": "54ebb48ea3cdf9528dff0338e046c59aacb5aaaa0f78362d4b78b2ac49d9e66a",
+      "renderer": "pdftoppm 26.07.0",
+      "crop": null
+    }
+  ],
+  "video_derivatives": [],
+  "video_note": "Both video cases use the identical full 32.44-second animated source. No clip derivative was generated. Request start/end use windows explicitly stated in the questions; baseline analyzes the full source and optimized analyzes the question window. Fine-grained evidence_intervals and expected_sequence are scoring-only.",
+  "labels_frozen_before_model_evaluation": true,
+  "model_calls_during_asset_research": 0
+}
