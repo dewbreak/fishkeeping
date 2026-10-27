@@ -6,7 +6,7 @@
 
 ## 方案与费用
 
-照片比较原图与 `low`；表格比较原图与本地 OCR 的完整证据组。空 OCR 组回退到同一原图请求，直接复用已有答案，不再次付费。稻米 OCR 与全部视频都有 `requires_review=true`，本次实验明确使用 `allow_review=True`；生产默认适配器会阻止这些请求。
+照片比较 `detail=original` 与 `low`；表格比较 PDF 渲染页的 original 输入与本地 OCR 的完整证据组。下文“原图”指 original detail，视频的 original 则指解码后的 JPEG 帧，不是原始视频字节。空 OCR 组回退到同一原图请求，直接复用已有答案，不再次付费。稻米 OCR 与全部视频都有 `requires_review=true`，本次实验明确使用 `allow_review=True`；生产默认适配器会阻止这些请求。
 
 视频比较全片均匀 12 帧/original 与问题明确时间窗内自适应 6 帧/low。它同时改变范围、帧数和图片 detail，是组合策略比较，不能将收益全部归因于自适应算法。`start_seconds/end_seconds` 来自题目；细粒度 `evidence_intervals` 和参考答案只用于事后评分，未输入选择器或模型。输入模型的是时间戳与真实选中 JPEG，不是接触表或字幕转写。
 
