@@ -1,0 +1,232 @@
+"""HTTP boundary. Deploy behind an identity-aware gateway for multi-user access."""
+
+from __future__ import annotations
+
+import secrets
+from contextlib import asynccontextmanager
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
+
+from fishkeeping import __version__
+from fishkeeping.config import Settings
+from fishkeeping.models import (
+    ConsolidateRequest,
+    ConsolidateResponse,
+    ContextRequest,
+    ContextResponse,
+    DeleteResponse,
+    IngestRequest,
+    IngestResponse,
+    MaintenanceRequest,
+    MaintenanceResponse,
+    Memory,
+    MemoryInput,
+    RecallRequest,
+    RecallResponse,
+    Scope,
+    StatsResponse,
+)
+from fishkeeping.providers import DeepSeekProvider, EmbeddingProvider, ProviderError
+from fishkeeping.service import MemoryService, NotConfiguredError
+from fishkeeping.storage import ConflictError, InvalidSourceError, Store
+
+
+def create_app(settings: Settings | None = None, service: MemoryService | None = None) -> FastAPI:
+    settings = settings or Settings()
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        if service is not None:
+            app.state.service = service
+            yield
+            return
+        store = Store(settings.db_path)
+        llm = DeepSeekProvider(settings) if settings.deepseek_api_key else None
+        embeddings = None
+        if settings.embedding_base_url or settings.embedding_model:
+            if not (settings.embedding_base_url and settings.embedding_model):
+                store.close()
+                raise ValueError("Both embedding_base_url and embedding_model must be configured")
+            embeddings = EmbeddingProvider(settings)
+        app.state.service = MemoryService(store, settings, llm=llm, embeddings=embeddings)
+        try:
+            yield
+        finally:
+            if embeddings is not None:
+                embeddings.close()
+            if llm is not None:
+                llm.close()
+            store.close()
+
+    app = FastAPI(title="Fishkeeping Memory API", version=__version__, lifespan=lifespan)
+
+    def current_service(request: Request) -> MemoryService:
+        return request.app.state.service
+
+    def principal(x_api_key: Annotated[str | None, Header()] = None) -> str | None:
+        if not settings.api_keys:
+            return None
+        if x_api_key is not None:
+            for expected, namespace in settings.api_keys.items():
+                if secrets.compare_digest(x_api_key.encode(), expected.encode()):
+                    return namespace
+        raise HTTPException(401, "Valid X-API-Key required")
+
+    def authorize(scope: Scope, namespace: str | None) -> None:
+        if namespace is not None and scope.namespace != namespace:
+            raise HTTPException(403, "API key is not authorized for this namespace")
+
+    def query_scope(
+        user_id: Annotated[str, Query(min_length=1, max_length=128, pattern=r"^[\w.:-]+$")],
+        namespace: Annotated[
+            str, Query(min_length=1, max_length=128, pattern=r"^[\w.:-]+$")
+        ] = "default",
+        agent_id: Annotated[
+            str, Query(min_length=1, max_length=128, pattern=r"^[\w.:-]+$")
+        ] = "default",
+    ) -> Scope:
+        return Scope(namespace=namespace, user_id=user_id, agent_id=agent_id)
+
+    @app.exception_handler(ConflictError)
+    async def conflict_handler(request: Request, exc: ConflictError):
+        return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+    @app.exception_handler(InvalidSourceError)
+    async def source_handler(request: Request, exc: InvalidSourceError):
+        return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+    @app.exception_handler(NotConfiguredError)
+    async def config_handler(request: Request, exc: NotConfiguredError):
+        return JSONResponse(status_code=503, content={"detail": str(exc)})
+
+    @app.exception_handler(ProviderError)
+    async def provider_handler(request: Request, exc: ProviderError):
+        return JSONResponse(status_code=502, content={"detail": "Model provider request failed"})
+
+    @app.get("/healthz")
+    def health():
+        return {"status": "ok", "version": __version__}
+
+    @app.get("/readyz")
+    def ready(svc: MemoryService = Depends(current_service)):
+        svc.store.stats(Scope(user_id="_readiness"))
+        return {"status": "ready"}
+
+    @app.post("/v1/memories", response_model=Memory, status_code=201)
+    def remember(
+        body: MemoryInput,
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(body.scope, namespace)
+        return svc.store.put(body)
+
+    @app.get("/v1/memories", response_model=list[Memory])
+    def list_memories(
+        scope: Scope = Depends(query_scope),
+        include_inactive: bool = False,
+        limit: int = Query(100, ge=1, le=1000),
+        offset: int = Query(0, ge=0),
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(scope, namespace)
+        return svc.store.list(scope, include_inactive=include_inactive, limit=limit, offset=offset)
+
+    @app.get("/v1/memories/{memory_id}", response_model=Memory)
+    def get_memory(
+        memory_id: str,
+        scope: Scope = Depends(query_scope),
+        include_inactive: bool = False,
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(scope, namespace)
+        memory = svc.store.get(scope, memory_id, include_inactive=include_inactive)
+        if memory is None:
+            raise HTTPException(404, "Memory not found")
+        return memory
+
+    @app.delete("/v1/memories/{memory_id}", response_model=DeleteResponse)
+    def delete_memory(
+        memory_id: str,
+        scope: Scope = Depends(query_scope),
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(scope, namespace)
+        deleted = svc.store.delete(scope, memory_id)
+        if not deleted:
+            raise HTTPException(404, "Memory not found")
+        return {"deleted_ids": deleted}
+
+    @app.post("/v1/memories/{memory_id}/rehearse", response_model=Memory)
+    def rehearse(
+        memory_id: str,
+        body: Scope,
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(body, namespace)
+        result = svc.store.rehearse(body, memory_id)
+        if result is None:
+            raise HTTPException(404, "Active memory not found")
+        return result
+
+    @app.post("/v1/ingest", response_model=IngestResponse)
+    def ingest(
+        body: IngestRequest,
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(body.scope, namespace)
+        return svc.ingest(body)
+
+    @app.post("/v1/recall", response_model=RecallResponse)
+    def recall(
+        body: RecallRequest,
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(body.scope, namespace)
+        return svc.recall(body)
+
+    @app.post("/v1/context", response_model=ContextResponse)
+    def context(
+        body: ContextRequest,
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(body.scope, namespace)
+        return svc.context(body)
+
+    @app.post("/v1/consolidate", response_model=ConsolidateResponse)
+    def consolidate(
+        body: ConsolidateRequest,
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(body.scope, namespace)
+        return svc.consolidate(body)
+
+    @app.post("/v1/maintenance", response_model=MaintenanceResponse)
+    def maintenance(
+        body: MaintenanceRequest,
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(body.scope, namespace)
+        return svc.maintain(body)
+
+    @app.get("/v1/stats", response_model=StatsResponse)
+    def stats(
+        scope: Scope = Depends(query_scope),
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(scope, namespace)
+        return svc.store.stats(scope)
+
+    return app

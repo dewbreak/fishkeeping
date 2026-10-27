@@ -1,0 +1,22 @@
+services:
+  fishkeeping:
+    build: .
+    init: true
+    env_file:
+      - .env
+    environment:
+      FISHKEEPING_HOST: 0.0.0.0
+      FISHKEEPING_PORT: "8765"
+      FISHKEEPING_DB_PATH: /app/data/fishkeeping.sqlite3
+    ports:
+      - "127.0.0.1:8765:8765"
+    volumes:
+      - fishkeeping-data:/app/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  fishkeeping-data:
