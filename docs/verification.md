@@ -14,7 +14,7 @@
 
 本轮 **零付费模型调用**。MCP 图片/视频由客户端模型解释，客户端自身可能计费；若配置远程 embedding，记忆检索仍沿用该提供商的计费。固定 scope 的 HTTP 入口面向可信本地调用，不新增公网多租户认证。当前测试没有覆盖所有第三方客户端 UI；工具协议、图片块和两种传输已实际验证。机器可读记录见 [MCP 验证](validation/mcp-2026-10-28.json)。
 
-远程 CI 在推送后按实际结果补记。
+源码提交 `1668aa655ee01b4c8ef92213e72bca915379cf85` 的 **Ubuntu/Windows × Python 3.11/3.12 四组远程 CI 全部通过**，包括 dev+mcp 锁定依赖、540 项测试、lint/格式、原有 HTTP smoke、真实 MCP stdio/Streamable HTTP smoke、离线检索/时间线评测和构建：[v0.5 实际 CI](https://github.com/dewbreak/fishkeeping/actions/runs/40570625615)。没有安装 OCR/向量模型权重或调用付费服务。本句为源码 CI 成功后的文档补记。
 
 ## v0.4 真实照片、复杂表格与短视频（历史）
 
