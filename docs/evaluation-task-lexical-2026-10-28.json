@@ -1,0 +1,763 @@
+{
+  "fixture_version": 1,
+  "fixture_sha256_canonical": "d3bd120dbb122a92610675c091e720f42a6841aa83ebfe8387808c20ce3f1175",
+  "clock": "2026-10-28T00:00:00+00:00",
+  "scenario_count": 8,
+  "record_count": 21,
+  "case_count": 25,
+  "mode": "offline-lexical",
+  "embedding_model_key": null,
+  "semantic_threshold": null,
+  "metrics": {
+    "k": 3,
+    "positive_cases": 16,
+    "recall_at_k": 0.625,
+    "mrr_at_k": 0.59375,
+    "precision_at_k_nonempty_macro": 0.95,
+    "precision_nonempty_cases": 10,
+    "returned_hits": 15,
+    "false_positive_hits": 1,
+    "false_discovery_fraction": 0.06666666666666667,
+    "queries_with_false_positive": 1,
+    "strict_empty_cases": 9,
+    "strict_empty_passed": 9,
+    "safety_forbidden_hits": 0,
+    "known_incorrect_hits": 1,
+    "quote_answer_exact_passed": 18,
+    "quote_answer_exact_accuracy": 0.72,
+    "llm_final_answer_accuracy": null
+  },
+  "cost": {
+    "paid_api_requests": 0,
+    "api_input_tokens": 0,
+    "api_output_tokens": 0,
+    "api_cost_usd": 0.0,
+    "local_document_encoding_calls": 0,
+    "local_document_texts_encoded": 0,
+    "local_query_encoding_calls": 0,
+    "llm_final_answers_evaluated": 0,
+    "token_estimate": null
+  },
+  "timing": {
+    "context_median_ms": 0.137,
+    "context_max_ms": 0.695,
+    "explicit_index_seconds_including_lazy_model_load": 0.0
+  },
+  "environment": {
+    "python": "3.12.4",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "operations": [
+    {
+      "delete": "expense_wrong",
+      "deleted": [
+        "expense_wrong"
+      ]
+    },
+    {
+      "delete": "expense_source",
+      "deleted": [
+        "expense_correct",
+        "expense_source"
+      ]
+    },
+    {
+      "delete": "garden_source",
+      "deleted": [
+        "garden_fact",
+        "garden_source",
+        "garden_summary"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "preference_before",
+      "scenario": "preference_update",
+      "category": "preference-update",
+      "query": "饮茶偏好",
+      "expected": [
+        "cold_tea",
+        "old_summary"
+      ],
+      "returned": [
+        "old_summary",
+        "cold_tea"
+      ],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "EVIDENCE",
+        "quotes": [
+          "我的饮茶偏好是冰红茶。",
+          "饮茶偏好摘要：冰红茶。"
+        ]
+      },
+      "answer_expected_quotes": [
+        "我的饮茶偏好是冰红茶。",
+        "饮茶偏好摘要：冰红茶。"
+      ],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 436,
+      "context_latency_ms": 0.654
+    },
+    {
+      "id": "preference_after",
+      "scenario": "preference_update",
+      "category": "preference-update",
+      "query": "现在饮茶偏好是什么？",
+      "expected": [
+        "hot_tea"
+      ],
+      "returned": [
+        "hot_tea"
+      ],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "EVIDENCE",
+        "quotes": [
+          "我的饮茶偏好改为热茉莉花茶，不再喝冰红茶。"
+        ]
+      },
+      "answer_expected_quotes": [
+        "我的饮茶偏好改为热茉莉花茶，不再喝冰红茶。"
+      ],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 278,
+      "context_latency_ms": 0.351
+    },
+    {
+      "id": "preference_rephrase",
+      "scenario": "preference_update",
+      "category": "paraphrase",
+      "query": "我现在想喝哪种茶？",
+      "expected": [
+        "hot_tea"
+      ],
+      "returned": [],
+      "missing": [
+        "hot_tea"
+      ],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [
+        "我的饮茶偏好改为热茉莉花茶，不再喝冰红茶。"
+      ],
+      "answer_exact": false,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.094
+    },
+    {
+      "id": "preference_english",
+      "scenario": "preference_update",
+      "category": "cross-language",
+      "query": "Which tea do I prefer now?",
+      "expected": [
+        "hot_tea"
+      ],
+      "returned": [],
+      "missing": [
+        "hot_tea"
+      ],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [
+        "我的饮茶偏好改为热茉莉花茶，不再喝冰红茶。"
+      ],
+      "answer_exact": false,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.059
+    },
+    {
+      "id": "conflict_visible",
+      "scenario": "unkeyed_conflict",
+      "category": "unresolved-contradiction",
+      "query": "我的工作安排",
+      "expected": [
+        "remote",
+        "onsite"
+      ],
+      "returned": [
+        "remote",
+        "onsite"
+      ],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "EVIDENCE",
+        "quotes": [
+          "我的工作安排是每周五天到办公室办公。",
+          "我的工作安排是每周五天远程办公。"
+        ]
+      },
+      "answer_expected_quotes": [
+        "我的工作安排是每周五天到办公室办公。",
+        "我的工作安排是每周五天远程办公。"
+      ],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 414,
+      "context_latency_ms": 0.337
+    },
+    {
+      "id": "conflict_english",
+      "scenario": "unkeyed_conflict",
+      "category": "cross-language",
+      "query": "What is my work arrangement?",
+      "expected": [
+        "remote",
+        "onsite"
+      ],
+      "returned": [],
+      "missing": [
+        "onsite",
+        "remote"
+      ],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [
+        "我的工作安排是每周五天到办公室办公。",
+        "我的工作安排是每周五天远程办公。"
+      ],
+      "answer_exact": false,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.066
+    },
+    {
+      "id": "wrong_fact_exposed",
+      "scenario": "wrong_extraction",
+      "category": "incorrect-extraction",
+      "query": "报销上限",
+      "expected": [
+        "expense_source"
+      ],
+      "returned": [
+        "expense_wrong",
+        "expense_source"
+      ],
+      "missing": [],
+      "false_positive_hits": [
+        "expense_wrong"
+      ],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [
+        "expense_wrong"
+      ],
+      "answer": {
+        "status": "EVIDENCE",
+        "quotes": [
+          "用户原话：这次报销上限是280元。",
+          "这次报销上限是820元。"
+        ]
+      },
+      "answer_expected_quotes": [
+        "用户原话：这次报销上限是280元。"
+      ],
+      "answer_exact": false,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 444,
+      "context_latency_ms": 0.392
+    },
+    {
+      "id": "wrong_fact_corrected",
+      "scenario": "wrong_extraction",
+      "category": "incorrect-extraction",
+      "query": "报销上限",
+      "expected": [
+        "expense_correct"
+      ],
+      "returned": [
+        "expense_correct"
+      ],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "EVIDENCE",
+        "quotes": [
+          "这次报销上限是280元。"
+        ]
+      },
+      "answer_expected_quotes": [
+        "这次报销上限是280元。"
+      ],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 304,
+      "context_latency_ms": 0.423
+    },
+    {
+      "id": "expense_source_deleted",
+      "scenario": "wrong_extraction",
+      "category": "source-deletion",
+      "query": "报销上限",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.105
+    },
+    {
+      "id": "commute_exact",
+      "scenario": "commute_rephrasing",
+      "category": "paraphrase",
+      "query": "my commute",
+      "expected": [
+        "bicycle"
+      ],
+      "returned": [
+        "bicycle"
+      ],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "EVIDENCE",
+        "quotes": [
+          "I use a folding bicycle for my commute."
+        ]
+      },
+      "answer_expected_quotes": [
+        "I use a folding bicycle for my commute."
+      ],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 296,
+      "context_latency_ms": 0.231
+    },
+    {
+      "id": "commute_rephrase",
+      "scenario": "commute_rephrasing",
+      "category": "paraphrase",
+      "query": "How do I get to the office?",
+      "expected": [
+        "bicycle"
+      ],
+      "returned": [],
+      "missing": [
+        "bicycle"
+      ],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [
+        "I use a folding bicycle for my commute."
+      ],
+      "answer_exact": false,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.137
+    },
+    {
+      "id": "commute_chinese",
+      "scenario": "commute_rephrasing",
+      "category": "cross-language",
+      "query": "我怎样通勤？",
+      "expected": [
+        "bicycle"
+      ],
+      "returned": [],
+      "missing": [
+        "bicycle"
+      ],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [
+        "I use a folding bicycle for my commute."
+      ],
+      "answer_exact": false,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.134
+    },
+    {
+      "id": "commute_empty",
+      "scenario": "commute_rephrasing",
+      "category": "empty",
+      "query": "What is the launch date of the Europa probe?",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.141
+    },
+    {
+      "id": "expired_code",
+      "scenario": "expiry_session",
+      "category": "expiry",
+      "query": "取件口令",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.213
+    },
+    {
+      "id": "pinned_still_expires",
+      "scenario": "expiry_session",
+      "category": "expiry",
+      "query": "备用口令",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.103
+    },
+    {
+      "id": "live_session",
+      "scenario": "expiry_session",
+      "category": "session-boundary",
+      "query": "会议地点",
+      "expected": [
+        "meeting_room"
+      ],
+      "returned": [
+        "meeting_room"
+      ],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "EVIDENCE",
+        "quotes": [
+          "会议地点是三楼银杏会议室。"
+        ]
+      },
+      "answer_expected_quotes": [
+        "会议地点是三楼银杏会议室。"
+      ],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 269,
+      "context_latency_ms": 0.285
+    },
+    {
+      "id": "wrong_session",
+      "scenario": "expiry_session",
+      "category": "session-boundary",
+      "query": "会议地点",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.106
+    },
+    {
+      "id": "no_session",
+      "scenario": "expiry_session",
+      "category": "session-boundary",
+      "query": "会议地点",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.098
+    },
+    {
+      "id": "scope_editor",
+      "scenario": "scope_and_distractors",
+      "category": "scope-boundary",
+      "query": "编辑器配置",
+      "expected": [
+        "my_editor"
+      ],
+      "returned": [
+        "my_editor"
+      ],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "EVIDENCE",
+        "quotes": [
+          "我的编辑器配置是 Vim 和深色主题。"
+        ]
+      },
+      "answer_expected_quotes": [
+        "我的编辑器配置是 Vim 和深色主题。"
+      ],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 276,
+      "context_latency_ms": 0.249
+    },
+    {
+      "id": "scope_empty",
+      "scenario": "scope_and_distractors",
+      "category": "empty",
+      "query": "passport expiry date",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.067
+    },
+    {
+      "id": "scope_english",
+      "scenario": "scope_and_distractors",
+      "category": "cross-language",
+      "query": "Which text editor and color theme do I use?",
+      "expected": [
+        "my_editor"
+      ],
+      "returned": [],
+      "missing": [
+        "my_editor"
+      ],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [
+        "我的编辑器配置是 Vim 和深色主题。"
+      ],
+      "answer_exact": false,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.075
+    },
+    {
+      "id": "uncertainty_abstain",
+      "scenario": "uncertain_evidence",
+      "category": "low-confidence",
+      "query": "接站地点",
+      "expected": [
+        "uncertain_station"
+      ],
+      "returned": [
+        "uncertain_station"
+      ],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 274,
+      "context_latency_ms": 0.253
+    },
+    {
+      "id": "uncertainty_empty",
+      "scenario": "uncertain_evidence",
+      "category": "empty",
+      "query": "the voltage of the satellite battery",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.074
+    },
+    {
+      "id": "deletion_before",
+      "scenario": "deletion_chain",
+      "category": "source-deletion",
+      "query": "花园浇水时间",
+      "expected": [
+        "garden_source",
+        "garden_fact",
+        "garden_summary"
+      ],
+      "returned": [
+        "garden_summary",
+        "garden_fact",
+        "garden_source"
+      ],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "EVIDENCE",
+        "quotes": [
+          "花园浇水时间摘要：清晨六点。",
+          "花园浇水时间是每天清晨六点。",
+          "花园浇水时间是清晨六点。"
+        ]
+      },
+      "answer_expected_quotes": [
+        "花园浇水时间摘要：清晨六点。",
+        "花园浇水时间是每天清晨六点。",
+        "花园浇水时间是清晨六点。"
+      ],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 611,
+      "context_latency_ms": 0.695
+    },
+    {
+      "id": "deletion_after",
+      "scenario": "deletion_chain",
+      "category": "source-deletion",
+      "query": "花园浇水时间",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "false_positive_hits": [],
+      "safety_forbidden_hits": [],
+      "known_incorrect_hits": [],
+      "answer": {
+        "status": "INSUFFICIENT_EVIDENCE",
+        "quotes": []
+      },
+      "answer_expected_quotes": [],
+      "answer_exact": true,
+      "retrieval_mode": "lexical",
+      "warnings": [],
+      "context_characters": 134,
+      "context_latency_ms": 0.134
+    }
+  ],
+  "limitations": "Synthetic frozen task timelines; quote-only evidence proxy is not LLM answer accuracy. Single local measurement, no network or LLM latency; no production SLA. Known-wrong extraction is deliberately retained as a factual verification limitation."
+}

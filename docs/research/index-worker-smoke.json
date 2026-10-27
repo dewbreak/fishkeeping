@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-28",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.4",
+  "network": "HF_HUB_OFFLINE=1; existing pinned cache only",
+  "paid_calls": 0,
+  "checks": [
+    {
+      "state": "completed",
+      "reserved": 2,
+      "processed": 2,
+      "total": 3,
+      "indexed": 2,
+      "complete": false,
+      "model_key": "local:fastembed-0.9.1|sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2@faf4aa4225822f3bc6376869cb1164e8e3feedd0|fp16-mean-l2-384|raw-query-passage|token126-weighted-chunks-v1",
+      "budget": {
+        "utc_day": "2026-10-27",
+        "attempts": 2,
+        "limit": 10,
+        "remaining": 8
+      },
+      "elapsed_seconds": 1.8583,
+      "check": "initial_bounded_batch"
+    },
+    {
+      "state": "completed",
+      "reserved": 1,
+      "processed": 1,
+      "total": 3,
+      "indexed": 3,
+      "complete": true,
+      "model_key": "local:fastembed-0.9.1|sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2@faf4aa4225822f3bc6376869cb1164e8e3feedd0|fp16-mean-l2-384|raw-query-passage|token126-weighted-chunks-v1",
+      "budget": {
+        "utc_day": "2026-10-27",
+        "attempts": 3,
+        "limit": 10,
+        "remaining": 7
+      },
+      "elapsed_seconds": 0.006,
+      "check": "restart_resume"
+    },
+    {
+      "state": "idle",
+      "reserved": 0,
+      "processed": 0,
+      "total": 3,
+      "indexed": 3,
+      "complete": true,
+      "model_key": "local:fastembed-0.9.1|sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2@faf4aa4225822f3bc6376869cb1164e8e3feedd0|fp16-mean-l2-384|raw-query-passage|token126-weighted-chunks-v1",
+      "budget": {
+        "utc_day": "2026-10-27",
+        "attempts": 3,
+        "limit": 10,
+        "remaining": 7
+      },
+      "elapsed_seconds": 0.0001,
+      "check": "idempotent_idle"
+    },
+    {
+      "state": "completed",
+      "reserved": 1,
+      "processed": 1,
+      "total": 4,
+      "indexed": 4,
+      "complete": true,
+      "model_key": "local:fastembed-0.9.1|sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2@faf4aa4225822f3bc6376869cb1164e8e3feedd0|fp16-mean-l2-384|raw-query-passage|token126-weighted-chunks-v1",
+      "budget": {
+        "utc_day": "2026-10-27",
+        "attempts": 4,
+        "limit": 10,
+        "remaining": 6
+      },
+      "elapsed_seconds": 0.0066,
+      "check": "discover_later_write"
+    }
+  ],
+  "queries": [
+    {
+      "query": "What programming language does the user use?",
+      "mode": "hybrid",
+      "hits": [],
+      "python_found": false
+    },
+    {
+      "query": "Python",
+      "mode": "hybrid",
+      "hits": [
+        "用户使用 Python 开发。"
+      ],
+      "python_found": true
+    }
+  ],
+  "limitation": "Index lifecycle smoke, not a recall benchmark or production latency measurement."
+}

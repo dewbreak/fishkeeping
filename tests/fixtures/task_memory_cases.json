@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "clock": "2026-10-28T00:00:00+00:00",
+  "label_policy": "Frozen before either retrieval run. Every returned key outside expected is irrelevant; safety_forbidden denotes scope/lifecycle violations and known_incorrect denotes deliberate factual contamination. No tuning on this set.",
+  "scenarios": [
+    {
+      "id": "preference_update",
+      "steps": [
+        {"op": "put", "key": "cold_tea", "content": "我的饮茶偏好是冰红茶。", "kind": "semantic", "fact_key": "tea"},
+        {"op": "put", "key": "old_summary", "content": "饮茶偏好摘要：冰红茶。", "kind": "semantic", "source_keys": ["cold_tea"]},
+        {"op": "query", "id": "preference_before", "category": "preference-update", "query": "饮茶偏好", "expected": ["cold_tea", "old_summary"]},
+        {"op": "put", "key": "hot_tea", "content": "我的饮茶偏好改为热茉莉花茶，不再喝冰红茶。", "kind": "semantic", "fact_key": "tea"},
+        {"op": "query", "id": "preference_after", "category": "preference-update", "query": "现在饮茶偏好是什么？", "expected": ["hot_tea"], "safety_forbidden": ["cold_tea", "old_summary"]},
+        {"op": "query", "id": "preference_rephrase", "category": "paraphrase", "query": "我现在想喝哪种茶？", "expected": ["hot_tea"], "safety_forbidden": ["cold_tea", "old_summary"]},
+        {"op": "query", "id": "preference_english", "category": "cross-language", "query": "Which tea do I prefer now?", "expected": ["hot_tea"], "safety_forbidden": ["cold_tea", "old_summary"]}
+      ]
+    },
+    {
+      "id": "unkeyed_conflict",
+      "steps": [
+        {"op": "put", "key": "remote", "content": "我的工作安排是每周五天远程办公。", "kind": "semantic"},
+        {"op": "put", "key": "onsite", "content": "我的工作安排是每周五天到办公室办公。", "kind": "semantic"},
+        {"op": "query", "id": "conflict_visible", "category": "unresolved-contradiction", "query": "我的工作安排", "expected": ["remote", "onsite"], "note": "Both claims must remain visible; no fact_key means the service does not know which statement supersedes the other."},
+        {"op": "query", "id": "conflict_english", "category": "cross-language", "query": "What is my work arrangement?", "expected": ["remote", "onsite"]}
+      ]
+    },
+    {
+      "id": "wrong_extraction",
+      "steps": [
+        {"op": "put", "key": "expense_source", "content": "用户原话：这次报销上限是280元。", "kind": "episodic"},
+        {"op": "put", "key": "expense_wrong", "content": "这次报销上限是820元。", "kind": "semantic", "confidence": 0.95, "source_keys": ["expense_source"], "metadata": {"method": "synthetic_incorrect_extraction"}},
+        {"op": "query", "id": "wrong_fact_exposed", "category": "incorrect-extraction", "query": "报销上限", "expected": ["expense_source"], "known_incorrect": ["expense_wrong"], "note": "Deliberately wrong high-confidence extraction; the service must not be credited with verifying factual truth."},
+        {"op": "delete", "key": "expense_wrong"},
+        {"op": "put", "key": "expense_correct", "content": "这次报销上限是280元。", "kind": "semantic", "confidence": 0.95, "source_keys": ["expense_source"]},
+        {"op": "query", "id": "wrong_fact_corrected", "category": "incorrect-extraction", "query": "报销上限", "kinds": ["semantic"], "expected": ["expense_correct"], "safety_forbidden": ["expense_wrong"]},
+        {"op": "delete", "key": "expense_source"},
+        {"op": "query", "id": "expense_source_deleted", "category": "source-deletion", "query": "报销上限", "expected": [], "safety_forbidden": ["expense_source", "expense_wrong", "expense_correct"]}
+      ]
+    },
+    {
+      "id": "commute_rephrasing",
+      "steps": [
+        {"op": "put", "key": "bicycle", "content": "I use a folding bicycle for my commute.", "kind": "semantic"},
+        {"op": "put", "key": "weekend", "content": "I go kayaking on Sunday mornings.", "kind": "semantic"},
+        {"op": "query", "id": "commute_exact", "category": "paraphrase", "query": "my commute", "expected": ["bicycle"]},
+        {"op": "query", "id": "commute_rephrase", "category": "paraphrase", "query": "How do I get to the office?", "expected": ["bicycle"]},
+        {"op": "query", "id": "commute_chinese", "category": "cross-language", "query": "我怎样通勤？", "expected": ["bicycle"]},
+        {"op": "query", "id": "commute_empty", "category": "empty", "query": "What is the launch date of the Europa probe?", "expected": []}
+      ]
+    },
+    {
+      "id": "expiry_session",
+      "steps": [
+        {"op": "put", "key": "short_code", "content": "取件口令是橙色灯塔。", "kind": "working", "session_id": "pickup", "ttl_seconds": 10},
+        {"op": "put", "key": "pinned_code", "content": "备用口令是蓝色钟楼。", "kind": "working", "session_id": "pickup", "ttl_seconds": 10, "pinned": true},
+        {"op": "put", "key": "meeting_room", "content": "会议地点是三楼银杏会议室。", "kind": "working", "session_id": "meeting", "ttl_seconds": 3600},
+        {"op": "query", "id": "expired_code", "category": "expiry", "query": "取件口令", "session_id": "pickup", "expected": [], "safety_forbidden": ["short_code", "pinned_code", "meeting_room"], "at_seconds": 60},
+        {"op": "query", "id": "pinned_still_expires", "category": "expiry", "query": "备用口令", "session_id": "pickup", "expected": [], "safety_forbidden": ["short_code", "pinned_code"]},
+        {"op": "query", "id": "live_session", "category": "session-boundary", "query": "会议地点", "session_id": "meeting", "expected": ["meeting_room"]},
+        {"op": "query", "id": "wrong_session", "category": "session-boundary", "query": "会议地点", "session_id": "pickup", "expected": [], "safety_forbidden": ["meeting_room"]},
+        {"op": "query", "id": "no_session", "category": "session-boundary", "query": "会议地点", "expected": [], "safety_forbidden": ["meeting_room"]}
+      ]
+    },
+    {
+      "id": "scope_and_distractors",
+      "steps": [
+        {"op": "put", "key": "my_editor", "content": "我的编辑器配置是 Vim 和深色主题。", "kind": "semantic"},
+        {"op": "put", "key": "foreign_editor", "content": "我的编辑器配置是 Emacs 和浅色主题。", "kind": "semantic", "scope": {"namespace": "task-eval", "user_id": "another-person"}},
+        {"op": "put", "key": "foreign_namespace", "content": "我的编辑器配置是 Nano 和粉色主题。", "kind": "semantic", "scope": {"namespace": "foreign-eval", "user_id": "scope_and_distractors"}},
+        {"op": "put", "key": "foreign_agent", "content": "我的编辑器配置是 Notepad 和绿色主题。", "kind": "semantic", "scope": {"namespace": "task-eval", "user_id": "scope_and_distractors", "agent_id": "another-agent"}},
+        {"op": "query", "id": "scope_editor", "category": "scope-boundary", "query": "编辑器配置", "expected": ["my_editor"], "safety_forbidden": ["foreign_editor", "foreign_namespace", "foreign_agent"]},
+        {"op": "query", "id": "scope_empty", "category": "empty", "query": "passport expiry date", "expected": [], "safety_forbidden": ["foreign_editor", "foreign_namespace", "foreign_agent"]},
+        {"op": "query", "id": "scope_english", "category": "cross-language", "query": "Which text editor and color theme do I use?", "expected": ["my_editor"], "safety_forbidden": ["foreign_editor", "foreign_namespace", "foreign_agent"]}
+      ]
+    },
+    {
+      "id": "uncertain_evidence",
+      "steps": [
+        {"op": "put", "key": "uncertain_station", "content": "可能在南站接人，尚未确认接站地点。", "kind": "semantic", "confidence": 0.4},
+        {"op": "query", "id": "uncertainty_abstain", "category": "low-confidence", "query": "接站地点", "expected": ["uncertain_station"], "answer_expected": [], "note": "Quote-only answer proxy abstains below confidence 0.7; confidence itself is not calibrated truth."},
+        {"op": "query", "id": "uncertainty_empty", "category": "empty", "query": "the voltage of the satellite battery", "expected": []}
+      ]
+    },
+    {
+      "id": "deletion_chain",
+      "steps": [
+        {"op": "put", "key": "garden_source", "content": "花园浇水时间是每天清晨六点。", "kind": "episodic"},
+        {"op": "put", "key": "garden_fact", "content": "花园浇水时间是清晨六点。", "kind": "semantic", "source_keys": ["garden_source"]},
+        {"op": "put", "key": "garden_summary", "content": "花园浇水时间摘要：清晨六点。", "kind": "semantic", "source_keys": ["garden_fact"]},
+        {"op": "query", "id": "deletion_before", "category": "source-deletion", "query": "花园浇水时间", "expected": ["garden_source", "garden_fact", "garden_summary"]},
+        {"op": "delete", "key": "garden_source"},
+        {"op": "query", "id": "deletion_after", "category": "source-deletion", "query": "花园浇水时间", "expected": [], "safety_forbidden": ["garden_source", "garden_fact", "garden_summary"]}
+      ]
+    }
+  ]
+}
