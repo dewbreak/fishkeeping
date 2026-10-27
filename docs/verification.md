@@ -18,7 +18,7 @@
 
 使用 Git 中实际 v0.2 `storage.py`，验证旧数据库加上 worker 表后仍能被旧 Store 重新打开，并将升级前 SQLite 在线备份恢复为原 schema/记录；[回滚报告](validation/rollback-v3-2026-10-28.json)。wheel/源码包构建成功，OpenAPI 已按 v0.3 重新导出。图片、数据库、模型权重、缓存和凭证不进入发布包或 Git。
 
-第一阶段提交 `6fd1593d34bbbab9056b648ddb8c9831ca51e10e` 的 Ubuntu/Windows × Python3.11/3.12 四组远程 CI 已全部通过：[运行记录](https://github.com/dewbreak/fishkeeping/actions/runs/40558312557)。最终图片提交的 CI 将在推送验证后补记。
+第一阶段提交 `6fd1593d34bbbab9056b648ddb8c9831ca51e10e` 的 Ubuntu/Windows × Python3.11/3.12 四组远程 CI 已全部通过：[运行记录](https://github.com/dewbreak/fishkeeping/actions/runs/40558312557)。最终图片功能提交 `0571f7ac138b9c7afa9678f9be2914d4a087068b` 的四组 CI 也全部通过，含 380 项离线测试、lint/format、HTTP smoke、原有与新增时间线评测、构建：[v0.3 CI](https://github.com/dewbreak/fishkeeping/actions/runs/40560450019)。这些 CI 使用基础+dev 环境，没有安装 vision/local extra 或调用付费模型。
 
 仍未实测 Docker 引擎启动、远程 embedding、真实 ROI 付费请求、复杂照片和多页图表；不以 fake 或静态配置替代这些验证。Codex 重置授权未触发，未消耗重置卡。
 
