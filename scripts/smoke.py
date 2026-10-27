@@ -25,6 +25,7 @@ def main() -> None:
         action="store_true",
         help="Opt in to local model loading/CPU inference (no paid API)",
     )
+    parser.add_argument("--vision", action="store_true", help="Opt in to real CPU OCR")
     args = parser.parse_args()
     scratch = Path(".tmp").resolve()
     scratch.mkdir(exist_ok=True)
@@ -91,9 +92,37 @@ def main() -> None:
                     assert result.chars_used == len(result.context) <= 2000
                     assert set(client.forget(source.id)) == {source.id, derived.id}
                     assert client.list() == []
+                    if args.vision:
+                        import io
+
+                        from PIL import Image, ImageDraw
+
+                        image = Image.new("RGB", (640, 180), "white")
+                        ImageDraw.Draw(image).text(
+                            (20, 40), "Filter price: 25 USD", fill="black", font_size=32
+                        )
+                        output = io.BytesIO()
+                        image.save(output, format="PNG")
+                        receipt = client.enqueue_image(
+                            output.getvalue(), "Filter price?", "image-smoke", "images"
+                        )
+                        assert "25" in receipt.evidence.packed and receipt.event.job is None
+                        assert client.enqueue_image(
+                            output.getvalue(), "Filter price?", "image-smoke", "images"
+                        ).event.replayed
+                        fact = client.remember(
+                            "Filter price: 25 USD",
+                            kind="semantic",
+                            source_ids=[receipt.event.episode.id],
+                        )
+                        assert client.sources(fact.id).items == [receipt.event.episode.id]
+                        assert set(client.forget(receipt.event.episode.id)) == {
+                            fact.id,
+                            receipt.event.episode.id,
+                        }
                     print(
                         "HTTP smoke passed: durable events, sources, SDK, recall, deletion; "
-                        f"local_embeddings={args.local_embeddings}"
+                        f"local_embeddings={args.local_embeddings}, vision={args.vision}"
                     )
             finally:
                 server.should_exit = True

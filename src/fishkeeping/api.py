@@ -39,10 +39,19 @@ from fishkeeping.models import (
 from fishkeeping.providers import DeepSeekProvider, ProviderError
 from fishkeeping.service import MemoryService, NotConfiguredError
 from fishkeeping.storage import ConflictError, InvalidSourceError, NotFoundError, Store
+from fishkeeping.vision import ImageInputError, ImageProcessor
+from fishkeeping.vision_events import enqueue_image
+from fishkeeping.vision_models import (
+    ImageEventRequest,
+    ImageEventResponse,
+    ImageEvidence,
+    ImageRequest,
+)
 
 
 def create_app(settings: Settings | None = None, service: MemoryService | None = None) -> FastAPI:
     settings = settings or Settings()
+    images = ImageProcessor()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -68,6 +77,7 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
             store.close()
 
     app = FastAPI(title="Fishkeeping Memory API", version=__version__, lifespan=lifespan)
+    app.state.images = images
 
     def current_service(request: Request) -> MemoryService:
         return request.app.state.service
@@ -109,6 +119,10 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
 
     @app.exception_handler(InvalidSourceError)
     async def source_handler(request: Request, exc: InvalidSourceError):
+        return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+    @app.exception_handler(ImageInputError)
+    async def image_handler(request: Request, exc: ImageInputError):
         return JSONResponse(status_code=422, content={"detail": str(exc)})
 
     @app.exception_handler(NotConfiguredError)
@@ -192,6 +206,7 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
         deleted = svc.store.delete(scope, memory_id)
         if not deleted:
             raise HTTPException(404, "Memory not found")
+        app.state.images.clear_scope(scope)
         return {"deleted_ids": deleted}
 
     @app.post("/v1/memories/{memory_id}/rehearse", response_model=Memory)
@@ -224,6 +239,23 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
     ):
         authorize(body.scope, namespace)
         return queue.enqueue(body)
+
+    @app.post("/v1/images/analyze", response_model=ImageEvidence)
+    def analyze_image(
+        body: ImageRequest,
+        namespace: str | None = Depends(principal),
+    ):
+        authorize(body.scope, namespace)
+        return app.state.images.analyze(body)
+
+    @app.post("/v1/images/events", response_model=ImageEventResponse, status_code=202)
+    def image_event(
+        body: ImageEventRequest,
+        namespace: str | None = Depends(principal),
+        queue: EventQueue = Depends(current_queue),
+    ):
+        authorize(body.scope, namespace)
+        return enqueue_image(body, queue, app.state.images)
 
     @app.get("/v1/events/{event_id}", response_model=EventResponse)
     def get_event(

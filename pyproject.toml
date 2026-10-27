@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fishkeeping-memory"
-version = "0.2.0"
+version = "0.3.0"
 description = "Human-memory-inspired, local-first memory service for agents"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -17,8 +17,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<10", "ruff>=0.9,<1", "build>=1,<2"]
+dev = ["pytest>=8,<10", "ruff>=0.9,<1", "build>=1,<2", "Pillow==13.0.0"]
 local = ["fastembed>=0.9.1,<0.10"]
+vision = ["rapidocr==3.10.0", "onnxruntime==1.31.1", "Pillow==13.0.0"]
 
 [project.scripts]
 fishkeeping = "fishkeeping.cli:main"

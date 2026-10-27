@@ -1,0 +1,444 @@
+{
+  "synthetic_only": true,
+  "subset_size": 8,
+  "labels_sha256": "1f5eafe075f9b5eedf32f04a773e5fed9c68589213c7d1abbc935d2feb7334e5",
+  "labels": {
+    "preference_english": {
+      "terms": [
+        [
+          "茉莉",
+          "jasmine"
+        ]
+      ],
+      "uncertain": false
+    },
+    "conflict_visible": {
+      "terms": [
+        [
+          "远程",
+          "remote"
+        ],
+        [
+          "办公室",
+          "office",
+          "到岗"
+        ]
+      ],
+      "uncertain": true
+    },
+    "wrong_fact_exposed": {
+      "terms": [
+        [
+          "280"
+        ]
+      ],
+      "forbidden": [
+        "820"
+      ],
+      "uncertain": false
+    },
+    "commute_chinese": {
+      "terms": [
+        [
+          "自行车",
+          "bicycle",
+          "bike"
+        ]
+      ],
+      "uncertain": false
+    },
+    "expired_code": {
+      "terms": [],
+      "uncertain": true
+    },
+    "scope_english": {
+      "terms": [
+        [
+          "Vim"
+        ],
+        [
+          "深色",
+          "dark"
+        ]
+      ],
+      "uncertain": false
+    },
+    "uncertainty_abstain": {
+      "terms": [],
+      "uncertain": true
+    },
+    "deletion_after": {
+      "terms": [],
+      "uncertain": true
+    }
+  },
+  "scoring": "Frozen term groups plus uncertainty; not human semantic grading.",
+  "modes": {
+    "lexical": {
+      "retrieval_report_sha256": "6b5c4fd7eb79798bfee98a0d1fdfe795c671cce6fe6e47132a22936be3c65687",
+      "estimate": {
+        "request_sha256": "86945cec1ef98010c8f3e51e560013c359be999808689cf2e205940575bd5ee8",
+        "text_utf8_bytes_upper_bound": 1978,
+        "framing_token_allowance": 320,
+        "image_count": 0,
+        "image_token_upper_bound": 0,
+        "input_token_upper_bound": 2298,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1918200,
+        "reserved_cost_usd": 0.0019182
+      },
+      "cases": [
+        {
+          "id": "preference_english",
+          "correct": false,
+          "uncertain": true
+        },
+        {
+          "id": "conflict_visible",
+          "correct": true,
+          "uncertain": true
+        },
+        {
+          "id": "wrong_fact_exposed",
+          "correct": true,
+          "uncertain": false
+        },
+        {
+          "id": "commute_chinese",
+          "correct": false,
+          "uncertain": true
+        },
+        {
+          "id": "expired_code",
+          "correct": true,
+          "uncertain": true
+        },
+        {
+          "id": "scope_english",
+          "correct": false,
+          "uncertain": true
+        },
+        {
+          "id": "uncertainty_abstain",
+          "correct": true,
+          "uncertain": true
+        },
+        {
+          "id": "deletion_after",
+          "correct": true,
+          "uncertain": true
+        }
+      ],
+      "accuracy": 0.625
+    },
+    "local": {
+      "retrieval_report_sha256": "e14f6b57b567ae1f4bad4d0e88a7316c11792338ba7dca280ca31c2b71590e46",
+      "estimate": {
+        "request_sha256": "60e7cd9c59b57b6f1f13ce3e57049db22ff7d176c068000cfcd2450ac7594e48",
+        "text_utf8_bytes_upper_bound": 2356,
+        "framing_token_allowance": 320,
+        "image_count": 0,
+        "image_token_upper_bound": 0,
+        "input_token_upper_bound": 2676,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 2031600,
+        "reserved_cost_usd": 0.0020316
+      },
+      "cases": [
+        {
+          "id": "preference_english",
+          "correct": true,
+          "uncertain": false
+        },
+        {
+          "id": "conflict_visible",
+          "correct": true,
+          "uncertain": true
+        },
+        {
+          "id": "wrong_fact_exposed",
+          "correct": false,
+          "uncertain": true
+        },
+        {
+          "id": "commute_chinese",
+          "correct": true,
+          "uncertain": false
+        },
+        {
+          "id": "expired_code",
+          "correct": true,
+          "uncertain": true
+        },
+        {
+          "id": "scope_english",
+          "correct": true,
+          "uncertain": false
+        },
+        {
+          "id": "uncertainty_abstain",
+          "correct": true,
+          "uncertain": true
+        },
+        {
+          "id": "deletion_after",
+          "correct": true,
+          "uncertain": true
+        }
+      ],
+      "accuracy": 0.875
+    }
+  },
+  "status": "completed",
+  "ledger": {
+    "version": 1,
+    "max_calls": 8,
+    "max_cost_nano_usd": 50000000,
+    "entries": [
+      {
+        "id": "3d0c1f5747704d75ab78f877301b9a0e",
+        "phase": "long_screenshot:native_original",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T18:15:58.013155+00:00",
+        "request_sha256": "975a928ec5ea15b269fa67b552473d66d6687ffebb680371e0a15f9abb2641e4",
+        "text_utf8_bytes_upper_bound": 740,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2084,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1854000,
+        "reserved_cost_usd": 0.001854,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 1116,
+          "completion_tokens": 22,
+          "total_tokens": 1138,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 1116
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0003612,
+        "bound_exceeded": false,
+        "latency_seconds": 1.1113,
+        "answer_term_groups_matched": 1,
+        "answer_term_groups_total": 1,
+        "answer_correct": true,
+        "uncertain": false,
+        "ocr_requires_review": false,
+        "image_sha256": "b68c0d8d3aaf594f17c5b3247609b41978c21225197cfec262ce38e23d9376c0"
+      },
+      {
+        "id": "484714654b114ddb96104bb43680b1ea",
+        "phase": "long_screenshot:compact_ocr",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T18:15:59.183869+00:00",
+        "request_sha256": "d8c626392c4f18c97b020c5a1bc9100be3a388d4fece4b52ca8f8d1e7ebab63d",
+        "text_utf8_bytes_upper_bound": 1384,
+        "framing_token_allowance": 320,
+        "image_count": 0,
+        "image_token_upper_bound": 0,
+        "input_token_upper_bound": 1704,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1740000,
+        "reserved_cost_usd": 0.00174,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 366,
+          "completion_tokens": 22,
+          "total_tokens": 388,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 366
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0001362,
+        "bound_exceeded": false,
+        "latency_seconds": 0.7253,
+        "answer_term_groups_matched": 1,
+        "answer_term_groups_total": 1,
+        "answer_correct": true,
+        "uncertain": false,
+        "ocr_requires_review": false,
+        "image_sha256": "b68c0d8d3aaf594f17c5b3247609b41978c21225197cfec262ce38e23d9376c0"
+      },
+      {
+        "id": "90a3316ca3014392a28974827b85d6cf",
+        "phase": "water_table:native_original",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T18:15:59.964857+00:00",
+        "request_sha256": "578caad3e290c1f8072123ca50431bef55681136b8532202ee9e2f02a78832a8",
+        "text_utf8_bytes_upper_bound": 749,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2093,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1856700,
+        "reserved_cost_usd": 0.0018567,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 692,
+          "completion_tokens": 38,
+          "total_tokens": 730,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 692
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0002532,
+        "bound_exceeded": false,
+        "latency_seconds": 0.6522,
+        "answer_term_groups_matched": 2,
+        "answer_term_groups_total": 2,
+        "answer_correct": true,
+        "uncertain": false,
+        "ocr_requires_review": false,
+        "image_sha256": "c51cdd6924d843926aa09e8c1f0a574c7a5ef48081cd4dbd10c8a9912d4a21ad"
+      },
+      {
+        "id": "e9237df9d2ab4fbcb6571715fa7b30e6",
+        "phase": "water_table:compact_ocr",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T18:16:00.672886+00:00",
+        "request_sha256": "60333dc73a526abfaf1159f67ef3dae5f5f8d17fbe8288f7e33506e77ae3c182",
+        "text_utf8_bytes_upper_bound": 1476,
+        "framing_token_allowance": 320,
+        "image_count": 0,
+        "image_token_upper_bound": 0,
+        "input_token_upper_bound": 1796,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1767600,
+        "reserved_cost_usd": 0.0017676,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 458,
+          "completion_tokens": 46,
+          "total_tokens": 504,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 458
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0001926,
+        "bound_exceeded": false,
+        "latency_seconds": 0.8273,
+        "answer_term_groups_matched": 2,
+        "answer_term_groups_total": 2,
+        "answer_correct": true,
+        "uncertain": false,
+        "ocr_requires_review": false,
+        "image_sha256": "c51cdd6924d843926aa09e8c1f0a574c7a5ef48081cd4dbd10c8a9912d4a21ad"
+      },
+      {
+        "id": "817370cb1c6645f0a77f3def5b599b87",
+        "phase": "scene_shapes:native_original",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T18:16:01.568114+00:00",
+        "request_sha256": "a26179d535aa2f9bf8657b2834646e5fab0f359c03324ba8b90e0e45110b29eb",
+        "text_utf8_bytes_upper_bound": 749,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2093,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1856700,
+        "reserved_cost_usd": 0.0018567,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 689,
+          "completion_tokens": 28,
+          "total_tokens": 717,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 689
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0002403,
+        "bound_exceeded": false,
+        "latency_seconds": 0.9473,
+        "answer_term_groups_matched": 2,
+        "answer_term_groups_total": 2,
+        "answer_correct": true,
+        "uncertain": false,
+        "ocr_requires_review": null,
+        "image_sha256": "d617b2db2829ed133a91f2d648f4f6aadc2d7c9b10c84edd1cf664e79bed4fc0"
+      },
+      {
+        "id": "d7857b16bd3f4311bc53185ec261b151",
+        "phase": "scene_shapes:native_low",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T18:16:02.556860+00:00",
+        "request_sha256": "1783ceb746e36c0d102e08db5e238b3b066ea9ea47d6c2e44388c241bf466548",
+        "text_utf8_bytes_upper_bound": 744,
+        "framing_token_allowance": 320,
+        "image_count": 1,
+        "image_token_upper_bound": 1024,
+        "input_token_upper_bound": 2088,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1855200,
+        "reserved_cost_usd": 0.0018552,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 309,
+          "completion_tokens": 31,
+          "total_tokens": 340,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 309
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0001299,
+        "bound_exceeded": false,
+        "latency_seconds": 0.6789,
+        "answer_term_groups_matched": 2,
+        "answer_term_groups_total": 2,
+        "answer_correct": true,
+        "uncertain": false,
+        "ocr_requires_review": null,
+        "image_sha256": "d617b2db2829ed133a91f2d648f4f6aadc2d7c9b10c84edd1cf664e79bed4fc0"
+      },
+      {
+        "id": "1d5c19b936084bd6824ec3d1bf920d64",
+        "phase": "task_answers:lexical",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T18:20:25.041095+00:00",
+        "request_sha256": "86945cec1ef98010c8f3e51e560013c359be999808689cf2e205940575bd5ee8",
+        "text_utf8_bytes_upper_bound": 1978,
+        "framing_token_allowance": 320,
+        "image_count": 0,
+        "image_token_upper_bound": 0,
+        "input_token_upper_bound": 2298,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 1918200,
+        "reserved_cost_usd": 0.0019182,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 489,
+          "completion_tokens": 179,
+          "total_tokens": 668,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 489
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0003615,
+        "bound_exceeded": false,
+        "latency_seconds": 1.3198
+      },
+      {
+        "id": "bc0052b1668a4f32aa8b08332aecea23",
+        "phase": "task_answers:local",
+        "state": "response_received",
+        "reserved_at": "2026-10-27T18:20:26.409611+00:00",
+        "request_sha256": "60e7cd9c59b57b6f1f13ce3e57049db22ff7d176c068000cfcd2450ac7594e48",
+        "text_utf8_bytes_upper_bound": 2356,
+        "framing_token_allowance": 320,
+        "image_count": 0,
+        "image_token_upper_bound": 0,
+        "input_token_upper_bound": 2676,
+        "output_token_upper_bound": 1024,
+        "reserved_nano_usd": 2031600,
+        "reserved_cost_usd": 0.0020316,
+        "http_status": 200,
+        "usage": {
+          "prompt_tokens": 599,
+          "completion_tokens": 182,
+          "total_tokens": 781,
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 599
+        },
+        "usage_based_peak_cost_estimate_usd": 0.0003981,
+        "bound_exceeded": false,
+        "latency_seconds": 1.1098
+      }
+    ]
+  }
+}

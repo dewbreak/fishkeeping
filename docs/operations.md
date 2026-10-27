@@ -1,6 +1,6 @@
 # 运行与维护
 
-Fishkeeping v0.2 面向单机可信后端。数据库使用 SQLite，默认监听 `127.0.0.1:8765`。核心操作无需模型凭证；可靠事件由独立 worker 提取，向量索引通过显式命令建立。默认没有定时提取、自动索引或自动归档任务。
+Fishkeeping v0.3 面向单机可信后端。数据库使用 SQLite，默认监听 `127.0.0.1:8765`。核心操作无需模型凭证；可靠事件由独立 worker 提取，向量通过显式索引或独立增量 worker 建立。API 不隐式启动这些进程，也不自动归档。
 
 ## 本地安装
 
@@ -137,11 +137,25 @@ uv run --extra local fishkeeping index --namespace personal --user-id alice --ag
 
 CLI 仅第一批发送 `rebuild=true`，后续批次继续补齐；HTTP/SDK 调用方也必须这样处理，不能每批都清空缓存。重建不删除记忆，不清理其他 scope 或模型 key 的缓存。清理后编码失败会留下尚未完成的索引，按 `rebuild=false` 续建即可。
 
-recall 只编码查询，不编码缺失文档；没有任何缓存时使用词法结果并提示未建索引。部分覆盖返回 `hybrid_partial` 与覆盖率警告，覆盖完整返回 `hybrid`。新增记忆后应安排显式增量索引，避免误把局部覆盖当作完整语义搜索。查询失败会降级为词法并给出警告。
+recall 只编码查询，不编码缺失文档；没有缓存时使用词法结果并提示未建索引。部分覆盖返回 `hybrid_partial` 与覆盖率警告，完整返回 `hybrid`。针对每个业务 scope 启动下列进程即可发现新增 episode 和新提取事实；查询失败仍降级为词法。
+
+```text
+uv run --extra local fishkeeping index-worker --user-id alice --batch-size 32 --max-batches 20 --daily-limit 1000
+```
+
+`--once` 单批后退出；否则空转从 2 秒退避至 60 秒。达到 20 个尝试批次或全库 UTC 日预算后退出，需由部署者调度重启。失败与崩溃不退预算，同日有效上限只能降低。远程后端被拒绝，手工 `/v1/index` 不受此本地预算限制。租约、重启、模型切换、working 排除和损坏缓存重建见 [详细说明](research/incremental-index.md)。
 
 若选择远程服务，保留 `FISHKEEPING_EMBEDDING_BACKEND=remote`，同时设置独立的 `FISHKEEPING_EMBEDDING_BASE_URL/MODEL`，按需配置其 key；默认模板未设置 URL/model，所以仍保持纯词法兼容。远程文档编码和查询可能计费，应自行限制索引批次、调用频率和服务额度。DeepSeek 聊天 key 不会自动作为 embedding key 使用。
 
 以上命令说明运行方式；本地模型、Docker 和真实 DeepSeek 的实际验证范围以 [验收记录](verification.md) 为准。
+
+## 图片处理
+
+图片处理需 `uv sync --extra dev --extra local --extra vision --locked`，后续命令保留需要的 extras，或直接使用同一 `.venv` Python。`vision` 固定 RapidOCR 3.10.0、ONNX Runtime 1.31.1、Pillow 13.0.0；RapidOCR wheel 约 27.3 MB、随包模型约 31.75 MB，另有 OpenCV/ONNX 运行依赖。模型启动前验证 SHA256，指定本地路径并禁用 GPU；不下载模型或执行远程仓库代码。[图片运行与验证](vision.md) 包含资源开销和费用边界。
+
+图片 API 限单图 4 MiB、12M 像素、最长边 8192，普通 OCR 预览最长边 1800；反向代理还需限制 HTTP 请求体与并发。JSON Base64 上限约 5.6 MB，图片不写入服务磁盘。每进程最多缓存 8 份 OCR 文本，按 scope/图片/方法版本/区域隔离；删除记忆清除此 scope 缓存，进程退出全部清空。事件证据仍保存在 SQLite。
+
+API 没有付费 `/answer` 路由，应用显式使用 `DeepSeekImageChat`。提取 worker 日预算不覆盖应用聊天/图片问答。验收脚本另使用 `.tmp/vision-live-budget.json` 持久账本，失败计入 8 次/US$0.05；本阶段已用完，不可删除账本继续本阶段调用。
 
 ## Docker Compose
 

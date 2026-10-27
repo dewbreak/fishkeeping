@@ -1,4 +1,5 @@
 import json
+import sqlite3
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -207,6 +208,31 @@ def test_unknown_worker_schema_rejected_without_changing_memory_schema(store):
         IndexWorker(store, FakeLocal(), SCOPE)
     assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 2
     assert store.stats(SCOPE)["total"] == 1
+
+
+def test_index_worker_schema_creation_failure_rolls_back(store):
+    memory = add(store)
+
+    def authorizer(action, name, *_args):
+        return (
+            sqlite3.SQLITE_DENY
+            if action == sqlite3.SQLITE_CREATE_TABLE and name == "index_worker_leases"
+            else sqlite3.SQLITE_OK
+        )
+
+    store._conn.set_authorizer(authorizer)
+    try:
+        with pytest.raises(sqlite3.DatabaseError):
+            IndexWorker(store, FakeLocal(), SCOPE)
+    finally:
+        store._conn.set_authorizer(None)
+    assert (
+        store._conn.execute(
+            "SELECT name FROM sqlite_master WHERE name='index_worker_schema'"
+        ).fetchone()
+        is None
+    )
+    assert store.get(SCOPE, memory.id).content == memory.content
 
 
 def test_recall_reports_partial_then_worker_completes_without_query_document_encoding(store):

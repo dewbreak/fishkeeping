@@ -10,6 +10,8 @@
 - `fact_key` 事实版本、来源完整关系与分页、旧派生摘要失效；删除来源时级联删除派生记忆。
 - 可靠事件摄入、持久化后台提取、幂等重放、租约和每日调用上限；可选 DeepSeek JSON 提取与巩固。
 - `namespace / user_id / agent_id` 隔离、绑定 namespace 的 API key、OpenAPI 与类型化客户端。
+- 可恢复的本地增量索引 worker：自动发现新记忆，持久租约与全库每日计算预算。
+- 图片证据 API/SDK：CPU OCR、问题相关区域、来源哈希与坐标；显式 DeepSeek 原生视觉或紧凑 OCR 问答。
 
 “仿照人类记忆”在这里是工程设计方向，不代表完整模拟人脑。默认词法模式不保证同义词或跨语言理解；首版面向单机可信后端。
 
@@ -63,7 +65,19 @@ uv run --extra local fishkeeping index --user-id alice
 uv run --extra local fishkeeping serve
 ```
 
-首次下载约 252 MB，后续使用本地缓存。查询只编码当前问题，不会顺带构建文档索引；新记忆需要再次运行 `index`。索引不完整时返回 `hybrid_partial` 和覆盖率警告。远程 embedding 仍可独立配置；不要把聊天模型地址用于 embedding。记忆上下文应作为不可信参考资料，不作为系统指令。
+首次下载约 252 MB，后续使用本地缓存。查询只编码当前问题；运行 `uv run --extra local fishkeeping index-worker --user-id alice` 可自动补齐后续新记忆（默认最多 20 批、全库 UTC 每日 1000 条尝试）。进程需自行启动并在达到上限后调度重启，详见 [增量索引](docs/research/incremental-index.md)。索引不完整时返回 `hybrid_partial` 和覆盖率警告。远程 embedding 仍可独立配置；不要把聊天模型地址用于 embedding。记忆上下文是参考资料，不是系统指令。
+
+## DeepSeek 低 token 识图
+
+2026-10-28 官方 `deepseek-flash` 已支持真正的 `image_url` 图片输入。文字截图/简单表格可先本地 OCR 并筛选问题证据；非文字场景或细节不足时显式使用原生视觉 `low` / 原图 / 最多两个区域。不会把 Base64 当普通文本发送，也不会自动付费回退。
+
+```text
+uv sync --extra dev --extra local --extra vision --locked
+uv run --extra local --extra vision fishkeeping serve
+uv run --extra local --extra vision python examples/image_question.py screenshot.png "目标温度是多少？"
+```
+
+示例默认只做本地 OCR 和可靠事件保存；添加 `--live` 才调用一次 DeepSeek。场景图片选择 `--mode low --live`。接口、来源和限制见 [图片接入指南](docs/vision.md)；[官方能力与许可调研](docs/research/deepseek-vision.md)。
 
 ## 文档与验证
 
@@ -78,6 +92,7 @@ uv run --extra local fishkeeping serve
 | [开发交接](docs/development.md) | 模块职责、算法、后续开发优先级 |
 | [验收记录](docs/verification.md) | 实际执行的验证与未验证范围 |
 | [检索评测](docs/evaluation.md) | 不调用模型的固定诊断集、指标与保留的失败案例 |
+| [图片识别](docs/vision.md) | API/SDK、本地 OCR、原生视觉、费用和真实对比 |
 
 ```text
 uv run --locked pytest -q
@@ -85,4 +100,4 @@ uv run --locked ruff check .
 uv build
 ```
 
-v0.2 本地验收：312 项测试通过，真实后台提取新增 1 次 Flash 调用、14 项检查通过；本地多语言模型和真实 HTTP 联调通过。原始诊断集召回率由 85.7% 提升至 92.9%，空结果检查全部通过，详见验收与评测记录。普通 CI 仅运行离线测试、HTTP smoke 与检索诊断，不调用付费模型、不下载权重。默认服务未开启认证，仅用于受信任本机；业务网关仍需完成用户授权。
+v0.3 本地验收：380 项测试通过，真实 CPU OCR + 本地向量 HTTP 联调通过。新增冻结任务集 Recall@3 由 62.5% 提升至 90.6%；两个截图案例输入 tokens 分别减少 67.2% 和 33.8%。本阶段仅 8 次真实 Flash 请求，总费用按 usage 和峰值单价估算 US$0.002073，详见 [验收记录](docs/verification.md)。普通 CI 不调用付费模型、不安装 OCR/向量权重；默认服务未开启认证，仅用于受信任本机，业务网关仍需完成用户授权。

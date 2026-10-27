@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 from urllib.parse import quote
 
 import httpx
@@ -25,6 +26,12 @@ from fishkeeping.models import (
     RecallResponse,
     Scope,
     SourcePage,
+)
+from fishkeeping.vision_models import (
+    ImageEventRequest,
+    ImageEventResponse,
+    ImageEvidence,
+    ImageRequest,
 )
 
 
@@ -56,6 +63,32 @@ class MemoryClient:
         body = MemoryInput(scope=self.scope, content=content, **kwargs)
         return Memory.model_validate(
             self._request("POST", "/v1/memories", json=body.model_dump(mode="json"))
+        )
+
+    def analyze_image(self, image: bytes, question: str, **kwargs) -> ImageEvidence:
+        body = ImageRequest(
+            scope=self.scope,
+            image_base64=base64.b64encode(image).decode("ascii"),
+            question=question,
+            **kwargs,
+        )
+        return ImageEvidence.model_validate(
+            self._request("POST", "/v1/images/analyze", json=body.model_dump(mode="json"))
+        )
+
+    def enqueue_image(
+        self, image: bytes, question: str, event_id: str, session_id: str, **kwargs
+    ) -> ImageEventResponse:
+        body = ImageEventRequest(
+            scope=self.scope,
+            image_base64=base64.b64encode(image).decode("ascii"),
+            question=question,
+            event_id=event_id,
+            session_id=session_id,
+            **kwargs,
+        )
+        return ImageEventResponse.model_validate(
+            self._request("POST", "/v1/images/events", json=body.model_dump(mode="json"))
         )
 
     def get(self, memory_id: str, include_inactive: bool = False) -> Memory:

@@ -1,6 +1,6 @@
 # 架构与选型决策
 
-状态：v0.2，可靠摄入、来源分页、候选索引和本地多语言向量已实现。实际验证见 [验收记录](verification.md)。
+状态：v0.3，新增可恢复增量索引和图片证据。实际验证见 [验收记录](verification.md)。
 
 ## 目标与边界
 
@@ -28,10 +28,13 @@ flowchart LR
   Q --> W[独立 worker / 调用预算]
   W --> F[可选 DeepSeek 提取]
   F --> D
-  D --> I[显式本地向量索引任务]
+  D --> I[本地增量 worker / 显式索引]
   I --> E
   E --> G[预算内记忆上下文]
   G --> A
+  P[图片 / 问题] --> O[本地 OCR 与证据筛选]
+  O --> B
+  O --> V[显式 DeepSeek 文本或原生视觉请求]
 ```
 
 ## 分类与生命周期
@@ -62,6 +65,12 @@ schema v2 在事务内迁移 v1：保留原数据并回填来源关系与 FTS5 �
 `sources` 表是来源关系的完整记录，记忆的 `source_ids` 为前 100 条预览，`source_count` 为完整计数；删除、循环检查和派生失效始终遍历完整关系。分页不是快照；并发追加时用稳定顺序继续读取，删除导致对象不存在时重新获取状态。
 
 ## 部署边界
+
+独立 `index-worker` 以缺少当前模型缓存的有效记忆作为持久待办，租约与全库 UTC 记录预算在事务中保存；只允许本地编码。成功缓存即检查点，新写入和后台事实会在后续扫描发现。核心 schema 保持 v2，索引 worker 附加 schema 为 v1，详见 [增量工作流](research/incremental-index.md)。
+
+图片 API 使用可选 CPU RapidOCR，只接受受限 PNG/JPEG 字节，不读取任意路径或 URL。图片哈希、EXIF 旋转后坐标、方法版本、置信信息和省略量随证据保存。问题筛选是词法启发式；`requires_review=false` 不保证全部所问字段都有证据。API 不启动付费模型；应用显式调用 `DeepSeekImageChat`，不自动重试或回退。
+
+`/v1/images/events` 保存单一 tool 消息、关闭事实提取。原始请求身份哈希包含图片哈希、scope、session、问题、区域、task 和字符预算；相同请求读取持久证据，OCR 升级也不重新识别。不同请求共享 event ID 返回冲突，删除后墓碑阻止重放。确认后的事实通过 `source_ids` 引用图片 episode，继续使用完整来源和删除级联。原图不入数据库，调用方负责保留可审计文件。
 
 默认仅监听回环地址。可通过 `FISHKEEPING_API_KEYS` 把 API key 绑定到 namespace；未配置认证只适合受信任本地环境。namespace 内 user/agent 由受信任调用方选择，业务网关仍须做用户授权。首版不承诺公网 SaaS、分布式扩展、加密静态存储或经过基准验证的召回质量。
 

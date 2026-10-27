@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Fishkeeping Memory API",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "paths": {
     "/healthz": {
@@ -699,6 +699,118 @@
         }
       }
     },
+    "/v1/images/analyze": {
+      "post": {
+        "summary": "Analyze Image",
+        "operationId": "analyze_image_v1_images_analyze_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageEvidence"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/images/events": {
+      "post": {
+        "summary": "Image Event",
+        "operationId": "image_event_v1_images_events_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageEventRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageEventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/events/{event_id}": {
       "get": {
         "summary": "Get Event",
@@ -1224,6 +1336,39 @@
   },
   "components": {
     "schemas": {
+      "Box": {
+        "properties": {
+          "x1": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "X1"
+          },
+          "y1": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Y1"
+          },
+          "x2": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "X2"
+          },
+          "y2": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Y2"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "x1",
+          "y1",
+          "x2",
+          "y2"
+        ],
+        "title": "Box"
+      },
       "ConsolidateRequest": {
         "properties": {
           "scope": {
@@ -1503,6 +1648,230 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "ImageEventRequest": {
+        "properties": {
+          "scope": {
+            "$ref": "#/components/schemas/Scope"
+          },
+          "image_base64": {
+            "type": "string",
+            "maxLength": 5592408,
+            "minLength": 1,
+            "title": "Image Base64"
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "max_chars": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 800.0,
+            "title": "Max Chars",
+            "default": 3000
+          },
+          "task": {
+            "type": "string",
+            "enum": [
+              "document",
+              "scene"
+            ],
+            "title": "Task",
+            "default": "document"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Box"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "event_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[\\w.:-]+$",
+            "title": "Event Id"
+          },
+          "session_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[\\w.:-]+$",
+            "title": "Session Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scope",
+          "image_base64",
+          "question",
+          "event_id",
+          "session_id"
+        ],
+        "title": "ImageEventRequest"
+      },
+      "ImageEventResponse": {
+        "properties": {
+          "evidence": {
+            "$ref": "#/components/schemas/ImageEvidence"
+          },
+          "event": {
+            "$ref": "#/components/schemas/EventResponse"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "evidence",
+          "event"
+        ],
+        "title": "ImageEventResponse"
+      },
+      "ImageEvidence": {
+        "properties": {
+          "image_sha256": {
+            "type": "string",
+            "title": "Image Sha256"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "method_version": {
+            "type": "string",
+            "title": "Method Version"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "regions": {
+            "items": {
+              "$ref": "#/components/schemas/TextRegion"
+            },
+            "type": "array",
+            "title": "Regions"
+          },
+          "total_regions": {
+            "type": "integer",
+            "title": "Total Regions"
+          },
+          "omitted_regions": {
+            "type": "integer",
+            "title": "Omitted Regions"
+          },
+          "requires_review": {
+            "type": "boolean",
+            "title": "Requires Review"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "packed": {
+            "type": "string",
+            "title": "Packed"
+          },
+          "chars_used": {
+            "type": "integer",
+            "title": "Chars Used"
+          },
+          "cache_hit": {
+            "type": "boolean",
+            "title": "Cache Hit",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "image_sha256",
+          "width",
+          "height",
+          "method",
+          "method_version",
+          "question",
+          "regions",
+          "total_regions",
+          "omitted_regions",
+          "requires_review",
+          "warnings",
+          "packed",
+          "chars_used"
+        ],
+        "title": "ImageEvidence"
+      },
+      "ImageRequest": {
+        "properties": {
+          "scope": {
+            "$ref": "#/components/schemas/Scope"
+          },
+          "image_base64": {
+            "type": "string",
+            "maxLength": 5592408,
+            "minLength": 1,
+            "title": "Image Base64"
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "max_chars": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 800.0,
+            "title": "Max Chars",
+            "default": 3000
+          },
+          "task": {
+            "type": "string",
+            "enum": [
+              "document",
+              "scene"
+            ],
+            "title": "Task",
+            "default": "document"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Box"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scope",
+          "image_base64",
+          "question"
+        ],
+        "title": "ImageRequest"
       },
       "IndexRequest": {
         "properties": {
@@ -2310,6 +2679,38 @@
           "expired"
         ],
         "title": "StatsResponse"
+      },
+      "TextRegion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "box": {
+            "$ref": "#/components/schemas/Box"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "box",
+          "text",
+          "confidence"
+        ],
+        "title": "TextRegion"
       },
       "ValidationError": {
         "properties": {

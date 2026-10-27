@@ -1,5 +1,7 @@
 # 接入 Fishkeeping
 
+v0.3 新增 `POST /v1/images/analyze`、`POST /v1/images/events` 及 SDK `analyze_image()` / `enqueue_image()`。输入字节由客户端转为 Base64 JSON，服务只作本地 OCR，不会隐式调用 DeepSeek；类型、幂等、低置信度回退和示例见 [图片接入指南](vision.md)。图片事件作为工具证据保存，确认后的事实通过 `source_ids=[episode.id]` 关联。持续补索引进程见 [index-worker](research/incremental-index.md)。
+
 Fishkeeping 提供独立 HTTP API，适合在现有 agent 的“调用模型前召回、对话完成后写入”两个位置接入。服务启动后，交互文档位于 `http://127.0.0.1:8765/docs`，机器可读规范位于 `/openapi.json`。部署方式见 [运行维护](operations.md)。
 
 ## 作用域和认证

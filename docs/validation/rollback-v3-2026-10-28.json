@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "synthetic_only": true,
+  "baseline_commit": "2d5870b",
+  "checks": [
+    "v02_database_upgrade_with_index_worker",
+    "actual_v02_store_reopens_augmented_database",
+    "preupgrade_sqlite_backup_restores_original_schema_and_record"
+  ],
+  "paid_calls": 0
+}
