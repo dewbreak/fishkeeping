@@ -48,6 +48,13 @@ def _fingerprint(item: MemoryInput) -> str:
     # Preserve case and internal whitespace (which may be executable-code data).
     content = unicodedata.normalize("NFC", item.content.strip())
     value = [item.kind, item.session_id, item.fact_key, content]
+    if (
+        item.metadata.get("method") == "conversation"
+        and "conversation_fingerprint" in item.metadata
+    ):
+        # Identical readable text can represent different message roles/boundaries.
+        # Legacy records keep their original fingerprint until explicitly re-ingested.
+        value.append(item.metadata["conversation_fingerprint"])
     return hashlib.sha256(json.dumps(value, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
@@ -190,17 +197,19 @@ class Store:
                 or (source.expires_at is not None and source.expires_at <= _time(now))
             ):
                 raise InvalidSourceError("source is no longer active in the requested scope")
-            if memory_id:
-                # Following a proposed source's parents must not reach this memory.
-                row = self._conn.execute(
-                    """WITH RECURSIVE ancestors(id) AS (
-                        SELECT ? UNION SELECT s.source_id FROM sources s
-                        JOIN ancestors a ON s.memory_id=a.id
-                    ) SELECT 1 FROM ancestors WHERE id=? LIMIT 1""",
-                    (source_id, memory_id),
-                ).fetchone()
-                if row:
-                    raise InvalidSourceError("source would create a provenance cycle")
+            if memory_id and self._would_create_cycle(memory_id, source_id):
+                raise InvalidSourceError("source would create a provenance cycle")
+
+    def _would_create_cycle(self, memory_id: str, source_id: str) -> bool:
+        # Following a proposed source's parents must not reach this memory.
+        row = self._conn.execute(
+            """WITH RECURSIVE ancestors(id) AS (
+                SELECT ? UNION SELECT s.source_id FROM sources s
+                JOIN ancestors a ON s.memory_id=a.id
+            ) SELECT 1 FROM ancestors WHERE id=? LIMIT 1""",
+            (source_id, memory_id),
+        ).fetchone()
+        return row is not None
 
     def _archive_descendants(self, scope: Scope, memory_id: str, now: datetime) -> None:
         """Invalidate conclusions derived from a superseded fact, retaining history."""
@@ -220,7 +229,11 @@ class Store:
             self._save(derived)
 
     def _put(
-        self, item: MemoryInput, now: datetime, require_active_sources: bool = False
+        self,
+        item: MemoryInput,
+        now: datetime,
+        require_active_sources: bool = False,
+        consolidation: bool = False,
     ) -> Memory:
         self._validate_sources(
             item.scope, item.source_ids, require_active=require_active_sources, now=now
@@ -245,7 +258,18 @@ class Store:
                 existing.append(memory)
         for memory in existing:
             if _fingerprint(memory) == fingerprint:
-                new_sources = list(dict.fromkeys([*memory.source_ids, *item.source_ids]))
+                requested_sources = item.source_ids
+                if consolidation:
+                    # An LLM may restate a source or its ancestor exactly. Reuse
+                    # that knowledge instead of adding circular evidence links.
+                    # Scope, existence and optional active checks ran above for
+                    # EVERY requested source, including links omitted here.
+                    requested_sources = [
+                        source_id
+                        for source_id in requested_sources
+                        if not self._would_create_cycle(memory.id, source_id)
+                    ]
+                new_sources = list(dict.fromkeys([*memory.source_ids, *requested_sources]))
                 if len(new_sources) > 100:
                     raise InvalidSourceError("a memory cannot reference more than 100 sources")
                 self._validate_sources(item.scope, new_sources, memory.id)
@@ -301,7 +325,10 @@ class Store:
         now: datetime | None = None,
         source_event: bool = False,
         require_active_sources: bool = False,
+        consolidation: bool = False,
     ) -> tuple[list[Memory], bool]:
+        if consolidation and (source_event or event_id is not None or event_hash is not None):
+            raise ValueError("consolidation cannot be combined with event ingestion")
         if not items:
             if event_id is not None or source_event:
                 raise ValueError("an event must contain at least one memory")
@@ -327,7 +354,7 @@ class Store:
                     item = MemoryInput.model_validate(
                         {**item.model_dump(), "source_ids": source_ids}
                     )
-                result.append(self._put(item, clock, require_active_sources))
+                result.append(self._put(item, clock, require_active_sources, consolidation))
             if event_id is not None:
                 self._conn.execute(
                     "INSERT INTO events VALUES (?,?,?,?,?,?,?,0)",

@@ -46,6 +46,8 @@ def test_deepseek_wire_format_and_user_only_extraction():
     assert payload["response_format"] == {"type": "json_object"}
     assert payload["stream"] is False
     assert payload["model"] == "deepseek-flash"
+    assert payload["thinking"] == {"type": "disabled"}
+    assert payload["max_tokens"] == 2048
     assert json.loads(payload["messages"][1]["content"])["records"] == [
         {"role": "user", "content": "我喜欢乌龙茶"}
     ]
@@ -57,6 +59,9 @@ def test_deepseek_wire_format_and_user_only_extraction():
     [
         completion(""),
         completion("not json"),
+        completion('```json\n{"memories": []}\n```'),
+        completion('{"memories": [], "memories": [{"content": "ambiguous"}]}'),
+        completion('{"memories": [{"content": "first", "content": "second"}]}'),
         completion('{"memories": []}', "length"),
         completion("{}"),
         completion('{"memories": [], "scope": "other-user"}'),
@@ -113,6 +118,119 @@ def test_provider_timeout_is_sanitized():
         provider = DeepSeekProvider(settings(deepseek_api_key="secret-value"), client)
         with pytest.raises(ProviderError) as error:
             provider.extract([Message(role="user", content="hi")])
+    assert "secret-value" not in str(error.value)
+    assert error.value.code == "timeout"
+    assert error.value.status_code is None
+
+
+@pytest.mark.parametrize("thinking", ["enabled", "omit"])
+def test_deepseek_budget_and_compatibility_options(thinking):
+    seen = []
+
+    def handler(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json=completion('{"memories": []}'))
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        provider = DeepSeekProvider(
+            settings(
+                deepseek_api_key="test-key",
+                deepseek_thinking=thinking,
+                deepseek_max_tokens=512,
+            ),
+            client,
+        )
+        assert provider.extract([Message(role="user", content="hello")]) == []
+    assert seen[0]["max_tokens"] == 512
+    if thinking == "omit":
+        assert "thinking" not in seen[0]
+    else:
+        assert seen[0]["thinking"] == {"type": "enabled"}
+
+
+@pytest.mark.parametrize(
+    ("status", "body", "code"),
+    [
+        (400, {"error": {"code": "model_not_found"}}, "model_unavailable"),
+        (400, {"error": {"code": "secret-value"}}, "invalid_request"),
+        (400, "secret-value", "invalid_request"),
+        (401, {}, "authentication_failed"),
+        (402, {}, "insufficient_balance"),
+        (403, {}, "permission_denied"),
+        (404, {}, "model_unavailable"),
+        (408, {}, "timeout"),
+        (422, {}, "invalid_request"),
+        (429, {}, "rate_limited"),
+        (500, {}, "upstream_unavailable"),
+        (503, {}, "upstream_unavailable"),
+    ],
+)
+def test_http_error_classification_is_stable_and_redacted(status, body, code):
+    with httpx.Client(
+        transport=httpx.MockTransport(lambda _: httpx.Response(status, json=body))
+    ) as client:
+        provider = DeepSeekProvider(settings(deepseek_api_key="secret-value"), client)
+        with pytest.raises(ProviderError) as error:
+            provider.extract([Message(role="user", content="hello")])
+    assert error.value.code == code
+    assert error.value.status_code == status
+    assert "secret-value" not in str(error.value)
+    assert "secret-value" not in repr(vars(error.value))
+
+
+def test_truncation_has_actionable_code_without_retrying():
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(200, json=completion("private partial answer", "length"))
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        provider = DeepSeekProvider(settings(deepseek_api_key="test-key"), client)
+        with pytest.raises(ProviderError) as error:
+            provider.extract([Message(role="user", content="hello")])
+    assert len(calls) == 1
+    assert error.value.code == "truncated_response"
+    assert "private" not in str(error.value)
+
+
+@pytest.mark.parametrize("key", [None, "", "   ", "replace-with-your-provider-key", "your-api-key"])
+def test_blank_and_template_keys_do_not_enable_provider_or_make_requests(key):
+    configuration = settings(deepseek_api_key=key, embedding_api_key=key)
+    assert configuration.deepseek_api_key is None
+    assert configuration.embedding_api_key is None
+    with httpx.Client(
+        transport=httpx.MockTransport(lambda _: pytest.fail("network called"))
+    ) as client:
+        provider = DeepSeekProvider(configuration, client)
+        with pytest.raises(ProviderError) as error:
+            provider.extract([Message(role="user", content="hello")])
+    assert error.value.code == "not_configured"
+
+
+def test_invalid_response_has_stable_code():
+    with httpx.Client(
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json=completion("not JSON")))
+    ) as client:
+        provider = DeepSeekProvider(settings(deepseek_api_key="test-key"), client)
+        with pytest.raises(ProviderError) as error:
+            provider.extract([Message(role="user", content="hello")])
+    assert error.value.code == "invalid_response"
+
+
+def test_transport_failure_is_sanitized_and_not_retried():
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        raise httpx.ConnectError("secret-value", request=request)
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        provider = DeepSeekProvider(settings(deepseek_api_key="test-key"), client)
+        with pytest.raises(ProviderError) as error:
+            provider.extract([Message(role="user", content="hello")])
+    assert len(calls) == 1
+    assert error.value.code == "network_error"
     assert "secret-value" not in str(error.value)
 
 

@@ -6,11 +6,15 @@ from uuid import uuid4
 import httpx
 
 from fishkeeping.client import MemoryClient
+from fishkeeping.config import Settings
 from fishkeeping.models import Scope
 
 
 def main() -> None:
-    api_key = os.environ["FISHKEEPING_DEEPSEEK_API_KEY"]
+    settings = Settings()
+    if settings.deepseek_api_key is None:
+        raise SystemExit("Configure FISHKEEPING_DEEPSEEK_API_KEY in .env or the environment")
+    api_key = settings.deepseek_api_key.get_secret_value()
     query = input("You: ").strip()
     if not query:
         return
@@ -31,16 +35,18 @@ def main() -> None:
             },
             {"role": "user", "content": f"参考资料：\n{context.context}\n当前问题：{query}"},
         ]
+        payload = {
+            "model": settings.deepseek_model,
+            "messages": messages,
+            "max_tokens": settings.deepseek_max_tokens,
+        }
+        if settings.deepseek_thinking != "omit":
+            payload["thinking"] = {"type": settings.deepseek_thinking}
         response = httpx.post(
-            os.getenv("FISHKEEPING_DEEPSEEK_BASE_URL", "https://api.deepseek.com").rstrip("/")
-            + "/chat/completions",
+            settings.deepseek_base_url + "/chat/completions",
             headers={"Authorization": f"Bearer {api_key}"},
-            json={
-                "model": os.getenv("FISHKEEPING_DEEPSEEK_MODEL", "deepseek-flash"),
-                "messages": messages,
-                "max_tokens": 2048,
-            },
-            timeout=90,
+            json=payload,
+            timeout=settings.request_timeout,
         )
         response.raise_for_status()
         choice = response.json()["choices"][0]

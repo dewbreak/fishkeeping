@@ -56,6 +56,8 @@ python3 -m venv .venv
 | `FISHKEEPING_API_KEYS` | `{}`；JSON 对象，随机 token → namespace，每个 token 至少 16 字符 |
 | `FISHKEEPING_DEEPSEEK_API_KEY` | 未设置；启用可选模型能力 |
 | `FISHKEEPING_DEEPSEEK_BASE_URL`、`FISHKEEPING_DEEPSEEK_MODEL` | `https://api.deepseek.com`、`deepseek-flash` |
+| `FISHKEEPING_DEEPSEEK_THINKING` | `disabled`；另支持 `enabled` 和兼容代理用的 `omit` |
+| `FISHKEEPING_DEEPSEEK_MAX_TOKENS` | 2048；范围 128～16384，模型输出预算 |
 | `FISHKEEPING_EMBEDDING_API_KEY/BASE_URL/MODEL` | 未设置；独立配置 embedding 服务 |
 | `FISHKEEPING_REQUEST_TIMEOUT` | 45 秒；范围 1～300 |
 | `FISHKEEPING_CANDIDATE_LIMIT` | 5000；范围 100～100000，限制候选扫描数量 |
@@ -149,5 +151,7 @@ print(target_path)
 ## 容量和升级
 
 首版采用单机 SQLite 与有界候选检索，未声明百万规模或多实例并发写能力。候选限制意味着较早记忆可能不进入召回候选；应用应处理响应警告，并在真实数据上测量延迟和召回质量后决定是否提升上限或迁移存储。
+
+每条记忆最多关联 100 个来源。同一事实被大量独立事件反复提取、合并来源时也受此限制；超过上限会事务回滚并返回 `422`，不会静默丢弃来源。高频确认场景应先评估来源分页与数据库关系扩展，不把这一小规模版本当作无限容量存储。
 
 升级前备份，安装后运行测试和健康检查，再验证代表性用户的写入/召回/上下文流程。保留旧程序版本及数据库快照，以便一起回滚；不假设任意旧程序都能读取未来数据库 schema。日志避免记录完整用户记忆、X-API-Key header 或提供商凭证。

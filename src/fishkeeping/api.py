@@ -103,7 +103,10 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
 
     @app.exception_handler(ProviderError)
     async def provider_handler(request: Request, exc: ProviderError):
-        return JSONResponse(status_code=502, content={"detail": "Model provider request failed"})
+        return JSONResponse(
+            status_code=502,
+            content={"detail": "Model provider request failed", "code": exc.code},
+        )
 
     @app.get("/healthz")
     def health():

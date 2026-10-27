@@ -140,13 +140,19 @@ DeepSeek 抽取与巩固由服务端配置：
 FISHKEEPING_DEEPSEEK_API_KEY=your-provider-key
 FISHKEEPING_DEEPSEEK_BASE_URL=https://api.deepseek.com
 FISHKEEPING_DEEPSEEK_MODEL=deepseek-flash
+FISHKEEPING_DEEPSEEK_THINKING=disabled
+FISHKEEPING_DEEPSEEK_MAX_TOKENS=2048
 ```
 
 模型名可配置，使用当前账号可调用的模型。`FISHKEEPING_REQUEST_TIMEOUT` 控制单次提供商请求超时。无 key 时，直接记忆读写、词法召回、上下文和维护仍可用；模型能力不可用时会返回明确错误。真实 DeepSeek 联调需要使用你的凭证另行执行，不能用模拟测试替代。
 
-运行仓库的 `examples/deepseek_chat.py` 时，客户端示例从进程环境读取 key；服务的 `.env` 不会自动导出到另一终端。PowerShell 中先设置 `$env:FISHKEEPING_DEEPSEEK_API_KEY='你的 key'`，然后执行 `uv run python examples/deepseek_chat.py`。可通过 `MEMORY_URL`、`MEMORY_NAMESPACE`、`MEMORY_API_KEY` 选择服务；`MEMORY_EXTRACT=true` 开启服务端提取，此时服务进程也必须配置 DeepSeek key。
+运行仓库的 `examples/deepseek_chat.py` 时，示例和服务统一通过 Settings 读取项目根目录的 `.env`，进程环境可覆盖该文件。填写 key 后执行 `uv run python examples/deepseek_chat.py` 即可。可通过 `MEMORY_URL`、`MEMORY_NAMESPACE`、`MEMORY_API_KEY` 选择服务；`MEMORY_EXTRACT=true` 开启服务端提取，此时服务进程也必须配置 DeepSeek key。
 
-巩固接口无 key 时仍可用：它生成有长度限制的原文摘取摘要，保留所有来源 ID，HTTP 响应 `method=extractive`，记录的 `metadata.method=extractive_summary`。该摘要可能截短原文，不声称推理出新事实。有 key 时走模型归纳，返回 `method=deepseek`；来源必须在同一 scope 内有效，工作记忆应先显式保存为情景记忆再巩固。
+默认 `thinking=disabled` 用于控制记忆整理费用；兼容代理若不支持 DeepSeek 的 thinking 参数，可以设为 `omit`，此时思考行为由上游默认值决定。`enabled` 显式启用思考。输出预算不足会返回 `code=truncated_response`，不会把截断 JSON 写入；如确有必要再提高 token 上限，系统不自动重试增加费用。
+
+巩固接口无 key 时仍可用：它生成有长度限制的原文摘取摘要，保留实际参与概括的来源 ID，HTTP 响应 `method=extractive`，记录的 `metadata.method=extractive_summary`。该摘要可能截短原文，不声称推理出新事实。有 key 时走模型归纳，返回 `method=deepseek`；来源必须在同一 scope 内有效，工作记忆应先显式保存为情景记忆再巩固。
+
+巩固已有事实可能直接复用原记录 ID，不会为了添加自指来源而失败。对于原始对话，只使用保存的结构化角色区间中 user 的内容，不将 assistant 的猜测作为证据；没有 user 消息的对话不会触发模型调用。首版旧对话若没有角色区间，巩固返回 `422`，应巩固其已提取事实，或以新事件 ID 重新摄入原始结构化消息；不能靠解析正文里的 `[user]` 字符串猜角色。
 
 开启抽取/巩固会将相关原始对话或来源记忆发送到配置的模型提供商；开启远程 embedding 会发送待编码文本及查询。部署者应根据数据范围配置这些能力。详细技术依据见 [DeepSeek 调研](research/deepseek-and-foundations.md)。
 
@@ -164,7 +170,7 @@ FISHKEEPING_DEEPSEEK_MODEL=deepseek-flash
 - `404`：请求的记忆在指定 scope 下不可用；不要用换 user ID 的方式尝试读取。
 - `409`：事件 ID 与请求内容冲突，或原事件结果已经被删除；先检查业务事件，勿盲目覆盖。
 - `422`：输入不符合 schema，如未知字段、无效范围、working 缺少会话，或来源无效/不在当前 scope。
-- `502`：模型提供商请求失败；响应不泄露提供商凭证或原始错误正文。
+- `502`：模型提供商请求失败；响应含脱敏 `code`，不泄露提供商凭证或原始错误正文。常见值为 `authentication_failed`、`insufficient_balance`、`rate_limited`、`timeout`、`truncated_response`、`invalid_response`。
 - `503`：请求了尚未配置的模型抽取；可以先关闭可选抽取，保留不依赖模型的直接写入路径。向量失败会降级为词法召回，并在成功响应的 `warnings` 中提示。
 
 重试应有限次并带退避。只对同一摄入事件重用幂等 ID；不要自动重试删除、归档等状态操作来掩盖逻辑错误。

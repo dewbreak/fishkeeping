@@ -1,0 +1,94 @@
+{
+  "started_at": "2026-10-27T16:49:41.110614+00:00",
+  "requested_model": "deepseek-flash",
+  "thinking": "disabled",
+  "max_calls": 4,
+  "max_output_tokens_per_call": 1024,
+  "synthetic_data_only": true,
+  "checks": {
+    "real_extraction_nonempty": true,
+    "extraction_provenance": true,
+    "assistant_claims_excluded_from_extraction": true,
+    "event_replay": true,
+    "replay_has_no_model_cost": true,
+    "existing_facts_consolidate_without_cycles": true,
+    "conversation_consolidation_nonempty": true,
+    "assistant_claims_excluded_from_consolidation": true,
+    "retrieval_contains_supported_preferences": true,
+    "context_budget": true,
+    "scope_isolation": true,
+    "answer_completed": true,
+    "answer_grounded_in_memory": true,
+    "answer_excludes_assistant_fiction": true,
+    "forget_cascades_to_derivations": true,
+    "forgotten_records_not_recalled": true,
+    "deleted_event_cannot_revive": true,
+    "deletion_persists_after_reopen": true
+  },
+  "status": "passed",
+  "calls": [
+    {
+      "phase": "extract",
+      "http_status": 200,
+      "model": "deepseek-flash",
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 279,
+        "completion_tokens": 153,
+        "total_tokens": 432,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 279
+      },
+      "latency_seconds": 1.562
+    },
+    {
+      "phase": "consolidate_facts",
+      "http_status": 200,
+      "model": "deepseek-flash",
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 361,
+        "completion_tokens": 153,
+        "total_tokens": 514,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 361
+      },
+      "latency_seconds": 1.047
+    },
+    {
+      "phase": "consolidate_conversation",
+      "http_status": 200,
+      "model": "deepseek-flash",
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 305,
+        "completion_tokens": 121,
+        "total_tokens": 426,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 305
+      },
+      "latency_seconds": 0.937
+    },
+    {
+      "phase": "answer_with_memory",
+      "http_status": 200,
+      "model": "deepseek-flash",
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 522,
+        "completion_tokens": 19,
+        "total_tokens": 541,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 522
+      },
+      "latency_seconds": 0.765
+    }
+  ],
+  "completed_at": "2026-10-27T16:49:46.334262+00:00",
+  "usage_totals": {
+    "prompt_tokens": 1467,
+    "completion_tokens": 446
+  },
+  "estimated_usd_upper_bound_for_reported_usage": 0.0009753,
+  "price_source": "https://api-docs.deepseek.com/quick_start/pricing/"
+}

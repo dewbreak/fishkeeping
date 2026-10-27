@@ -8,6 +8,7 @@ import time
 from datetime import UTC, datetime
 
 from fishkeeping.config import Settings
+from fishkeeping.conversations import encode_conversation, trusted_conversation_content
 from fishkeeping.models import (
     ConsolidateRequest,
     ContextRequest,
@@ -55,16 +56,14 @@ class MemoryService:
                 raise NotConfiguredError("DeepSeek extraction is not configured")
             # All external work is completed and validated before any database write.
             facts = self.llm.extract(request.messages)
-        transcript = "\n".join(
-            f"[{message.role}] {message.content}" for message in request.messages
-        )
+        transcript, provenance = encode_conversation(request.messages)
         items = [
             MemoryInput(
                 scope=request.scope,
                 content=transcript,
                 kind="episodic",
                 session_id=request.session_id,
-                metadata={"event_id": request.event_id, "method": "conversation"},
+                metadata={"event_id": request.event_id, **provenance},
             )
         ]
         items.extend(
@@ -201,6 +200,21 @@ class MemoryService:
             raise InvalidSourceError(
                 "Persist working observations as episodes before consolidation"
             )
+        trusted_memories = []
+        for memory in memories:
+            try:
+                content = trusted_conversation_content(memory)
+            except ValueError as exc:
+                raise InvalidSourceError(
+                    "Conversation provenance is missing or invalid; reingest with a new "
+                    "event_id or consolidate its extracted facts"
+                ) from exc
+            if content is not None:
+                trusted_memories.append(memory.model_copy(update={"content": content}))
+        memories = trusted_memories
+        if not memories:
+            return {"memories": [], "method": "deepseek" if self.llm is not None else "extractive"}
+        source_ids = [memory.id for memory in memories]
         if self.llm is None:
             # Extractive summary: retained wording, no invented facts or model dependency.
             content = "Extractive summary; no inferred facts:\n" + "\n".join(
@@ -231,7 +245,9 @@ class MemoryService:
                 for fact in facts
             ]
         results, _ = (
-            self.store.put_many(items, require_active_sources=True) if items else ([], False)
+            self.store.put_many(items, require_active_sources=True, consolidation=True)
+            if items
+            else ([], False)
         )
         return {"memories": results, "method": method}
 

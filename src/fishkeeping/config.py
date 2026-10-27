@@ -1,5 +1,7 @@
 """Environment configuration; no network calls or DB writes at import time."""
 
+from typing import Literal
+
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -16,12 +18,34 @@ class Settings(BaseSettings):
     deepseek_api_key: SecretStr | None = None
     deepseek_base_url: str = "https://api.deepseek.com"
     deepseek_model: str = "deepseek-flash"
+    deepseek_thinking: Literal["disabled", "enabled", "omit"] = "disabled"
+    deepseek_max_tokens: int = Field(default=2048, ge=128, le=16384)
     embedding_api_key: SecretStr | None = None
     embedding_base_url: str | None = None
     embedding_model: str | None = None
     request_timeout: float = Field(default=45, ge=1, le=300)
     candidate_limit: int = Field(default=5000, ge=100, le=100000)
     embedding_max_new_per_recall: int = Field(default=64, ge=1, le=1024)
+
+    @field_validator("deepseek_api_key", "embedding_api_key", mode="before")
+    @classmethod
+    def normalize_optional_key(cls, value: str | SecretStr | None) -> str | None:
+        if value is None:
+            return None
+        raw = value.get_secret_value() if isinstance(value, SecretStr) else value
+        if not isinstance(raw, str):
+            raise ValueError("API key must be a string")
+        raw = raw.strip()
+        if not raw or raw.lower() in {
+            "your-api-key",
+            "your_api_key",
+            "your-provider-key",
+            "replace-with-your-provider-key",
+            "replace-with-your-embedding-key",
+            "你的真实api密钥",
+        }:
+            return None
+        return raw
 
     @field_validator("deepseek_base_url", "embedding_base_url")
     @classmethod

@@ -17,7 +17,52 @@ from fishkeeping.models import ExtractedFact, Extraction, Memory, Message
 
 
 class ProviderError(RuntimeError):
-    """A provider is unavailable or returned an invalid response."""
+    """A sanitized failure with stable diagnostics, never a provider body or key."""
+
+    def __init__(
+        self,
+        message: str = "Model provider request failed",
+        *,
+        code: str = "provider_error",
+        status_code: int | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.status_code = status_code
+
+
+def _http_failure(response: httpx.Response) -> ProviderError:
+    """Classify using status and an allowlist of machine codes, not error prose."""
+    status = response.status_code
+    code = {
+        401: "authentication_failed",
+        402: "insufficient_balance",
+        403: "permission_denied",
+        404: "model_unavailable",
+        408: "timeout",
+        422: "invalid_request",
+        429: "rate_limited",
+    }.get(status, "invalid_request" if status == 400 else "http_error")
+    if status >= 500:
+        code = "upstream_unavailable"
+    if status == 400:
+        try:
+            body = response.json()
+            provider_code = body.get("error", {}).get("code")
+            if provider_code in ("model_not_found", "invalid_model", "model_not_exist"):
+                code = "model_unavailable"
+        except (ValueError, TypeError, AttributeError):
+            pass
+    return ProviderError("Model provider rejected the request", code=code, status_code=status)
+
+
+def _unique_object(pairs: list[tuple[str, object]]) -> dict:
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON key")
+        result[key] = value
+    return result
 
 
 _OUTPUT_INSTRUCTIONS = """
@@ -25,6 +70,7 @@ Return only a JSON object with this schema:
 {"memories": [{"content": "one concise fact", "kind": "semantic",
 "importance": 0.5, "confidence": 0.7}]}
 The memories list may be empty and must contain at most 20 entries.
+Use concise wording and do not repeat the same fact in multiple entries.
 kind must be semantic or procedural; importance and confidence must be numbers
 between 0 and 1. Each content must be at most 4000 characters. Do not emit other
 fields. Do not invent facts, fill gaps, or turn uncertainty into certainty.
@@ -50,43 +96,56 @@ class DeepSeekProvider:
     def _complete(self, instruction: str, records: list[dict]) -> list[ExtractedFact]:
         key = self.settings.deepseek_api_key
         if key is None or not key.get_secret_value().strip():
-            raise ProviderError("DeepSeek is not configured")
+            raise ProviderError("DeepSeek is not configured", code="not_configured")
+        payload = {
+            "model": self.settings.deepseek_model,
+            "messages": [
+                {"role": "system", "content": instruction + _OUTPUT_INSTRUCTIONS},
+                {
+                    "role": "user",
+                    "content": json.dumps({"records": records}, ensure_ascii=False),
+                },
+            ],
+            "response_format": {"type": "json_object"},
+            "max_tokens": self.settings.deepseek_max_tokens,
+            "stream": False,
+        }
+        # DeepSeek enables thinking by default. Disable it for economical extraction;
+        # omit is available for compatible servers that reject this DeepSeek extension.
+        if self.settings.deepseek_thinking != "omit":
+            payload["thinking"] = {"type": self.settings.deepseek_thinking}
         try:
             response = self.client.post(
                 f"{self.settings.deepseek_base_url}/chat/completions",
                 headers={"Authorization": f"Bearer {key.get_secret_value()}"},
-                json={
-                    "model": self.settings.deepseek_model,
-                    "messages": [
-                        {"role": "system", "content": instruction + _OUTPUT_INSTRUCTIONS},
-                        {
-                            "role": "user",
-                            "content": json.dumps({"records": records}, ensure_ascii=False),
-                        },
-                    ],
-                    "response_format": {"type": "json_object"},
-                    "max_tokens": 4096,
-                    "stream": False,
-                },
+                json=payload,
                 timeout=self.settings.request_timeout,
             )
-            response.raise_for_status()
+            if not response.is_success:
+                raise _http_failure(response)
             if len(response.content) > 1_000_000:
                 raise ValueError("response too large")
             body = response.json()
             choice = body["choices"][0]
+            if choice.get("finish_reason") == "length":
+                raise ProviderError(
+                    "DeepSeek output exceeded the token budget", code="truncated_response"
+                )
             if choice.get("finish_reason") != "stop":
                 raise ValueError("completion did not finish normally")
             content = choice["message"]["content"]
             if not isinstance(content, str) or not content.strip():
                 raise ValueError("empty completion")
-            parsed = json.loads(content)
+            parsed = json.loads(content, object_pairs_hook=_unique_object)
             # Required even for an empty result: {} is not a valid extraction.
             if not isinstance(parsed, dict) or "memories" not in parsed:
                 raise ValueError("missing memories")
             return Extraction.model_validate(parsed, strict=True).memories
+        except httpx.TimeoutException:
+            raise ProviderError("Model provider request timed out", code="timeout") from None
+        except httpx.HTTPError:
+            raise ProviderError("Model provider connection failed", code="network_error") from None
         except (
-            httpx.HTTPError,
             ValueError,
             TypeError,
             KeyError,
@@ -94,7 +153,9 @@ class DeepSeekProvider:
             AttributeError,
             ValidationError,
         ):
-            raise ProviderError("DeepSeek request failed or returned invalid memory data") from None
+            raise ProviderError(
+                "DeepSeek returned invalid memory data", code="invalid_response"
+            ) from None
 
     def extract(self, messages: list[Message]) -> list[ExtractedFact]:
         """Extract durable user facts; assistant/tool/system text cannot supply facts."""
@@ -122,7 +183,9 @@ class DeepSeekProvider:
 class EmbeddingProvider:
     def __init__(self, settings: Settings, client: httpx.Client | None = None) -> None:
         if not settings.embedding_base_url or not settings.embedding_model:
-            raise ProviderError("Embedding base URL and model must both be configured")
+            raise ProviderError(
+                "Embedding base URL and model must both be configured", code="not_configured"
+            )
         self.settings = settings
         self.model_key = f"{settings.embedding_base_url}|{settings.embedding_model}"
         self._owns_client = client is None
@@ -149,7 +212,8 @@ class EmbeddingProvider:
                 json={"model": self.settings.embedding_model, "input": texts},
                 timeout=self.settings.request_timeout,
             )
-            response.raise_for_status()
+            if not response.is_success:
+                raise _http_failure(response)
             data = response.json()["data"]
             if not isinstance(data, list) or len(data) != len(texts):
                 raise ValueError("wrong result count")
@@ -177,5 +241,11 @@ class EmbeddingProvider:
             if any(vector is None for vector in result):
                 raise ValueError("missing index")
             return [vector for vector in result if vector is not None]
-        except (httpx.HTTPError, ValueError, TypeError, KeyError, OverflowError):
-            raise ProviderError("Embedding request failed or returned invalid vectors") from None
+        except httpx.TimeoutException:
+            raise ProviderError("Embedding request timed out", code="timeout") from None
+        except httpx.HTTPError:
+            raise ProviderError("Embedding connection failed", code="network_error") from None
+        except (ValueError, TypeError, KeyError, OverflowError):
+            raise ProviderError(
+                "Embedding provider returned invalid vectors", code="invalid_response"
+            ) from None

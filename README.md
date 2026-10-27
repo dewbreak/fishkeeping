@@ -51,7 +51,7 @@ with MemoryClient("http://127.0.0.1:8765", Scope(user_id="alice")) as memory:
 
 在 `.env` 中设置 `FISHKEEPING_DEEPSEEK_API_KEY`，重启服务。模型名通过 `FISHKEEPING_DEEPSEEK_MODEL` 配置，调研当日官方示例为 `deepseek-flash`；以账号实际支持的模型为准。[官方说明](https://api-docs.deepseek.com/)
 
-调用 `/v1/ingest` 时显式设置 `extract=true` 才提取候选事实。`/v1/consolidate` 在配置 key 后使用模型，未配置时生成可追溯的原文摘取摘要。对话本身仍由接入方掌控：[DeepSeek 对话示例](examples/deepseek_chat.py)展示“先召回 → 调用模型 → 写入事件”；该示例从进程环境读取 key，具体运行方法见 [接入文档](docs/integration.md)。
+调用 `/v1/ingest` 时显式设置 `extract=true` 才提取候选事实。`/v1/consolidate` 在配置 key 后使用模型，未配置时生成可追溯的原文摘取摘要。对话本身仍由接入方掌控：[DeepSeek 对话示例](examples/deepseek_chat.py)展示“先召回 → 调用模型 → 写入事件”；示例与服务统一读取 `.env`。默认关闭 thinking，输出上限可配置，具体方法见 [接入文档](docs/integration.md)。
 
 不要把聊天模型地址用于 embedding。向量提供商独立配置；响应会明确报告词法降级和缓存预热进度。记忆上下文应作为不可信参考资料，不作为系统指令。
 
@@ -66,6 +66,7 @@ with MemoryClient("http://127.0.0.1:8765", Scope(user_id="alice")) as memory:
 | [运行维护](docs/operations.md) | 本地/Docker 启动、配置、备份、恢复、维护 |
 | [开发交接](docs/development.md) | 模块职责、算法、后续开发优先级 |
 | [验收记录](docs/verification.md) | 实际执行的验证与未验证范围 |
+| [检索评测](docs/evaluation.md) | 不调用模型的固定诊断集、指标与保留的失败案例 |
 
 ```text
 uv run --locked pytest -q
@@ -73,4 +74,4 @@ uv run --locked ruff check .
 uv build
 ```
 
-提供 Docker Compose 和 GitHub Actions 配置。实际验证范围以验收记录为准；真实 DeepSeek 需要使用有效凭证联调。默认服务未开启认证，仅用于受信任本机；业务接入应配置 namespace key，并由自己的网关完成用户授权。
+已完成真实 DeepSeek 联调：4 次低价 Flash 调用、18 项端到端检查通过，详见验收记录。普通 CI 仅运行离线测试、HTTP smoke 与检索诊断，不调用付费模型。提供 Docker Compose 和 GitHub Actions 配置；默认服务未开启认证，仅用于受信任本机，业务接入应配置 namespace key，并由自己的网关完成用户授权。

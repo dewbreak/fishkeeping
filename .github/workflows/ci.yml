@@ -35,5 +35,7 @@ jobs:
         run: uv run --locked pytest -q
       - name: HTTP smoke test
         run: uv run --locked python scripts/smoke.py
+      - name: Offline retrieval evaluation (no API calls)
+        run: uv run --locked python scripts/evaluate.py
       - name: Build package
         run: uv build
