@@ -18,7 +18,9 @@
 
 万条合成记录实测：词法查询中位数 0.218 ms、完整 384 维向量扫描约 1.026 秒；这是内存数据库单线程诊断，不是生产规模承诺，见 [规模报告](validation/storage-scale-2026-10-28.json)。
 
-本地最终验证：**312 项 pytest 测试通过**，Ruff 检查与格式检查通过；真实 HTTP smoke（含本地 CPU 模型）通过；wheel 与源码包构建成功，检查未包含凭证、数据库、模型缓存、虚拟环境和 uv 缓存；OpenAPI 快照与当前应用一致，文档相对链接检查通过。仅有此前已有的 Starlette 测试客户端 HTTPX 弃用提示。远程 CI 结果在推送后另行记录。
+本地最终验证：**312 项 pytest 测试通过**，Ruff 检查与格式检查通过；真实 HTTP smoke（含本地 CPU 模型）通过；wheel 与源码包构建成功，检查未包含凭证、数据库、模型缓存、虚拟环境和 uv 缓存；OpenAPI 快照与当前应用一致，文档相对链接检查通过。仅有此前已有的 Starlette 测试客户端 HTTPX 弃用提示。
+
+代码提交 `2d0b10f5300012c2e54b83a475a0913834e78e2e` 的 **Ubuntu/Windows × Python 3.11/3.12 四组远程 CI 全部通过**，包括不安装可选 local extra 的基础依赖环境、312 项测试、lint/格式、真实 HTTP smoke、离线评测及构建，见 [v0.2 CI 运行记录](https://github.com/dewbreak/fishkeeping/actions/runs/40552078267)。本句是该代码提交通过后的文档补记。
 
 ## 上轮：真实 DeepSeek 联调与质量修复（历史）
 
