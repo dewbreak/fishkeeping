@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from contextlib import ExitStack, contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
 from fishkeeping.config import Settings
-from fishkeeping.models import MemoryInput, RecallRequest, Scope
+from fishkeeping.models import IndexRequest, MemoryInput, RecallRequest, Scope
 from fishkeeping.service import MemoryService
 from fishkeeping.storage import Store
 
@@ -55,7 +56,7 @@ def calculate_metrics(results: list[dict], limit: int) -> dict:
     }
 
 
-def evaluate(dataset: dict, limit: int = 3) -> dict:
+def evaluate(dataset: dict, limit: int = 3, *, embeddings=None) -> dict:
     if not 1 <= limit <= 100:
         raise ValueError("limit must be between 1 and 100")
     anchor = datetime.fromisoformat(dataset["clock"])
@@ -88,7 +89,7 @@ def evaluate(dataset: dict, limit: int = 3) -> dict:
     store = Store(":memory:")
     results = []
     try:
-        service = MemoryService(store, settings, llm=None, embeddings=None)
+        service = MemoryService(store, settings, llm=None, embeddings=embeddings)
         key_by_id = {}
         with fixed_clock(anchor):
             for position, record in enumerate(dataset["records"]):
@@ -100,6 +101,10 @@ def evaluate(dataset: dict, limit: int = 3) -> dict:
                 if memory.id in key_by_id:
                     raise ValueError("fixture records must not collapse into duplicate memories")
                 key_by_id[memory.id] = record["key"]
+            if embeddings is not None:
+                # Only the tested scope is indexed; foreign-scope fixtures remain isolated.
+                while not service.index(IndexRequest(scope=scope, limit=1024)).complete:
+                    pass
             for case in dataset["cases"]:
                 response = service.recall(
                     RecallRequest(
@@ -133,8 +138,10 @@ def evaluate(dataset: dict, limit: int = 3) -> dict:
         "clock": anchor.isoformat(),
         "record_count": len(record_keys),
         "case_count": len(results),
-        "mode": "offline-lexical",
-        "model_calls": 0,
+        "mode": "local-hybrid" if embeddings is not None else "offline-lexical",
+        "model_calls": 0,  # Paid/API model calls; local encoding is opt-in below.
+        "embedding_model_key": embeddings.model_key if embeddings is not None else None,
+        "semantic_threshold": getattr(embeddings, "similarity_threshold", None),
         "metrics": metrics,
         "strict_checks_passed": metrics["forbidden_hits"] == 0
         and metrics["strict_empty_passed"] == metrics["strict_empty_cases"],
@@ -148,9 +155,26 @@ def main() -> None:
     parser.add_argument("--fixture", type=Path, default=DEFAULT_FIXTURE)
     parser.add_argument("--k", type=int, default=3)
     parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--local-embeddings",
+        action="store_true",
+        help="Download/load the pinned local model and evaluate semantic recall (no paid API)",
+    )
     args = parser.parse_args()
     dataset = json.loads(args.fixture.read_text(encoding="utf-8"))
-    report = evaluate(dataset, args.k)
+    embeddings = None
+    start = time.monotonic()
+    try:
+        if args.local_embeddings:
+            from fishkeeping.local_embeddings import LocalEmbeddingProvider
+
+            embeddings = LocalEmbeddingProvider(Settings(_env_file=None))
+        report = evaluate(dataset, args.k, embeddings=embeddings)
+    finally:
+        if embeddings is not None:
+            embeddings.close()
+    if args.local_embeddings:
+        report["elapsed_seconds"] = round(time.monotonic() - start, 3)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(

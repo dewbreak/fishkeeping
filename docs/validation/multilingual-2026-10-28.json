@@ -1,0 +1,333 @@
+{
+  "fixture_version": 1,
+  "clock": "2026-10-28T00:00:00+00:00",
+  "record_count": 26,
+  "case_count": 22,
+  "mode": "local-hybrid",
+  "model_calls": 0,
+  "embedding_model_key": "local:fastembed-0.9.1|sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2@faf4aa4225822f3bc6376869cb1164e8e3feedd0|fp16-mean-l2-384|raw-query-passage|token126-weighted-chunks-v1",
+  "semantic_threshold": 0.5,
+  "metrics": {
+    "k": 3,
+    "positive_cases": 14,
+    "recall_at_k": 0.9285714285714286,
+    "mrr_at_k": 0.9285714285714286,
+    "strict_empty_cases": 8,
+    "strict_empty_passed": 8,
+    "forbidden_hits": 0
+  },
+  "strict_checks_passed": true,
+  "cases": [
+    {
+      "id": "mixed_python",
+      "category": "mixed-language",
+      "query": "Python开发",
+      "expected": [
+        "python_preference",
+        "python_release"
+      ],
+      "returned": [
+        "python_preference",
+        "python_release"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "reply_language",
+      "category": "preference",
+      "query": "中文解释",
+      "expected": [
+        "chinese_reply"
+      ],
+      "returned": [
+        "chinese_reply"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "drink_literal",
+      "category": "preference",
+      "query": "乌龙茶",
+      "expected": [
+        "tea_preference"
+      ],
+      "returned": [
+        "tea_preference"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "procedure_test",
+      "category": "procedure",
+      "query": "pytest",
+      "expected": [
+        "release_steps",
+        "python_release"
+      ],
+      "returned": [
+        "python_release",
+        "release_steps"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "backup_sources",
+      "category": "mixed-language",
+      "query": "SQLite备份",
+      "expected": [
+        "sqlite_backup",
+        "sqlite_episode"
+      ],
+      "returned": [
+        "sqlite_episode",
+        "sqlite_backup",
+        "sql_book"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "framework_event",
+      "category": "episode",
+      "query": "FastAPI接口",
+      "expected": [
+        "fastapi_episode"
+      ],
+      "returned": [
+        "fastapi_episode"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "english_entity",
+      "category": "english",
+      "query": "Prometheus",
+      "expected": [
+        "metrics"
+      ],
+      "returned": [
+        "metrics"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "named_project",
+      "category": "entity",
+      "query": "GraphAtlas",
+      "expected": [
+        "graph_project"
+      ],
+      "returned": [
+        "graph_project"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "current_fact",
+      "category": "fact-version",
+      "query": "Berlin",
+      "expected": [
+        "new_city"
+      ],
+      "returned": [
+        "new_city"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "timezone",
+      "category": "english",
+      "query": "timezone Shanghai",
+      "expected": [
+        "timezone"
+      ],
+      "returned": [
+        "timezone"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "working_match",
+      "category": "working",
+      "query": "sessionpin",
+      "expected": [
+        "working_current"
+      ],
+      "returned": [
+        "working_current"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid_partial",
+      "warnings": [
+        "Embedding index covers 19/20 records; run explicit indexing to complete coverage"
+      ]
+    },
+    {
+      "id": "theme_preference",
+      "category": "preference",
+      "query": "深色主题",
+      "expected": [
+        "dark_theme"
+      ],
+      "returned": [
+        "dark_theme"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "synonym_hard",
+      "category": "semantic-gap",
+      "query": "quiet workspace",
+      "expected": [
+        "quiet_office"
+      ],
+      "returned": [
+        "quiet_office"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "cross_language_hard",
+      "category": "semantic-gap",
+      "query": "oolong beverage",
+      "expected": [
+        "tea_preference"
+      ],
+      "returned": [],
+      "missing": [
+        "tea_preference"
+      ],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "user_isolation",
+      "category": "isolation",
+      "query": "userprivatecipher",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "agent_isolation",
+      "category": "isolation",
+      "query": "agentprivatecipher",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "namespace_isolation",
+      "category": "isolation",
+      "query": "namespaceprivatecipher",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "expiry",
+      "category": "expiry",
+      "query": "temporarycipher",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "old_fact_hidden",
+      "category": "fact-version",
+      "query": "Oslo",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "working_hidden_without_session",
+      "category": "working",
+      "query": "sessionpin",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "other_session_hidden",
+      "category": "working",
+      "query": "foreignsessionpin",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid_partial",
+      "warnings": [
+        "Embedding index covers 19/20 records; run explicit indexing to complete coverage"
+      ]
+    },
+    {
+      "id": "unrelated_pinned_hidden",
+      "category": "negative",
+      "query": "unseenunrelatedword",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    }
+  ],
+  "limitations": "Small hand-labeled synthetic diagnostic set, not a general benchmark.",
+  "elapsed_seconds": 2.532
+}

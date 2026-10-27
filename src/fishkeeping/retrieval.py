@@ -15,6 +15,12 @@ _WORDS = re.compile(
 )
 _CJK = re.compile(r"^[\u3400-\u9fff]+$")
 _HALF_LIFE_DAYS = {"working": 1 / 24, "episodic": 14, "semantic": 90, "procedural": 180}
+_QUERY_STOPWORDS = frozenset(
+    "a an the is are was were am be been being do does did have has had "
+    "what which who whom whose when where why how i me my we our you your "
+    "he she it its they their this that these those of to in on at for from "
+    "with and or as by about please tell can could would should".split()
+)
 
 
 def tokenize(text: str) -> list[str]:
@@ -30,6 +36,15 @@ def tokenize(text: str) -> list[str]:
         else:
             result.append(token)
     return result
+
+
+def query_terms(text: str) -> list[str]:
+    """Ignore English grammatical words that alone are not evidence of relevance.
+
+    Keep negation, temporal relations and technical names; do not rewrite stored
+    text or change document tokenization, so existing FTS indexes remain valid.
+    """
+    return [token for token in tokenize(text) if token not in _QUERY_STOPWORDS]
 
 
 def _utc(value: datetime) -> datetime:
@@ -72,6 +87,7 @@ def rank(
     query_vector: list[float] | None = None,
     vectors: dict[str, list[float]] | None = None,
     now: datetime | None = None,
+    semantic_threshold: float = 0.35,
 ) -> list[RecallHit]:
     """Score relevant active records, never mutating memory or reinforcing reads."""
     current = _utc(now or datetime.now(UTC))
@@ -83,7 +99,7 @@ def rank(
     ]
     if not candidates or limit <= 0:
         return []
-    query_tokens = set(tokenize(query))
+    query_tokens = set(query_terms(query))
     if not query_tokens and query_vector is None:
         return []
     documents = [Counter(tokenize(memory.content)) for memory in candidates]
@@ -112,7 +128,7 @@ def rank(
         if query_vector is not None and vectors and memory.id in vectors:
             # Threshold avoids treating every positive embedding cosine as relevant.
             cosine = _cosine(query_vector, vectors[memory.id])
-            semantic = max(0.0, (cosine - 0.35) / 0.65)
+            semantic = max(0.0, (cosine - semantic_threshold) / (1 - semantic_threshold))
         relevance = max(lexical, 0.75 * semantic + 0.25 * lexical)
         if relevance <= 0:
             continue

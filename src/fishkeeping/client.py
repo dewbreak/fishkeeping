@@ -10,8 +10,13 @@ from fishkeeping.models import (
     ConsolidateRequest,
     ContextRequest,
     ContextResponse,
+    EventRequest,
+    EventResponse,
+    IndexRequest,
+    IndexResponse,
     IngestRequest,
     IngestResponse,
+    JobInfo,
     MaintenanceRequest,
     Memory,
     MemoryInput,
@@ -19,6 +24,7 @@ from fishkeeping.models import (
     RecallRequest,
     RecallResponse,
     Scope,
+    SourcePage,
 )
 
 
@@ -110,6 +116,53 @@ class MemoryClient:
         body = ConsolidateRequest(scope=self.scope, source_ids=source_ids)
         response = self._request("POST", "/v1/consolidate", json=body.model_dump(mode="json"))
         return [Memory.model_validate(item) for item in response["memories"]]
+
+    def enqueue(
+        self,
+        event_id: str,
+        session_id: str,
+        messages: list[Message] | list[dict],
+        extract: bool = True,
+    ) -> EventResponse:
+        body = EventRequest(
+            scope=self.scope,
+            event_id=event_id,
+            session_id=session_id,
+            messages=messages,
+            extract=extract,
+        )
+        return EventResponse.model_validate(
+            self._request("POST", "/v1/events", json=body.model_dump(mode="json"))
+        )
+
+    def event(self, event_id: str) -> EventResponse:
+        return EventResponse.model_validate(
+            self._request(
+                "GET", f"/v1/events/{quote(event_id, safe='')}", params=self.scope.model_dump()
+            )
+        )
+
+    def retry_event(self, event_id: str) -> JobInfo:
+        return JobInfo.model_validate(
+            self._request(
+                "POST", f"/v1/events/{quote(event_id, safe='')}/retry", json=self.scope.model_dump()
+            )
+        )
+
+    def sources(self, memory_id: str, limit: int = 100, offset: int = 0) -> SourcePage:
+        return SourcePage.model_validate(
+            self._request(
+                "GET",
+                f"/v1/memories/{quote(memory_id, safe='')}/sources",
+                params={**self.scope.model_dump(), "limit": limit, "offset": offset},
+            )
+        )
+
+    def index(self, limit: int = 64, *, rebuild: bool = False) -> IndexResponse:
+        body = IndexRequest(scope=self.scope, limit=limit, rebuild=rebuild)
+        return IndexResponse.model_validate(
+            self._request("POST", "/v1/index", json=body.model_dump(mode="json"))
+        )
 
     def forget(self, memory_id: str) -> list[str]:
         response = self._request(

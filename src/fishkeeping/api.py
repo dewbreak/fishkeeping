@@ -11,14 +11,21 @@ from fastapi.responses import JSONResponse
 
 from fishkeeping import __version__
 from fishkeeping.config import Settings
+from fishkeeping.embedding_factory import create_embeddings
+from fishkeeping.jobs import EventQueue
 from fishkeeping.models import (
     ConsolidateRequest,
     ConsolidateResponse,
     ContextRequest,
     ContextResponse,
     DeleteResponse,
+    EventRequest,
+    EventResponse,
+    IndexRequest,
+    IndexResponse,
     IngestRequest,
     IngestResponse,
+    JobInfo,
     MaintenanceRequest,
     MaintenanceResponse,
     Memory,
@@ -26,11 +33,12 @@ from fishkeeping.models import (
     RecallRequest,
     RecallResponse,
     Scope,
+    SourcePage,
     StatsResponse,
 )
-from fishkeeping.providers import DeepSeekProvider, EmbeddingProvider, ProviderError
+from fishkeeping.providers import DeepSeekProvider, ProviderError
 from fishkeeping.service import MemoryService, NotConfiguredError
-from fishkeeping.storage import ConflictError, InvalidSourceError, Store
+from fishkeeping.storage import ConflictError, InvalidSourceError, NotFoundError, Store
 
 
 def create_app(settings: Settings | None = None, service: MemoryService | None = None) -> FastAPI:
@@ -40,18 +48,17 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
     async def lifespan(app: FastAPI):
         if service is not None:
             app.state.service = service
+            app.state.queue = EventQueue(service.store, settings)
             yield
             return
         store = Store(settings.db_path)
-        llm = DeepSeekProvider(settings) if settings.deepseek_api_key else None
+        llm = None
         embeddings = None
-        if settings.embedding_base_url or settings.embedding_model:
-            if not (settings.embedding_base_url and settings.embedding_model):
-                store.close()
-                raise ValueError("Both embedding_base_url and embedding_model must be configured")
-            embeddings = EmbeddingProvider(settings)
-        app.state.service = MemoryService(store, settings, llm=llm, embeddings=embeddings)
         try:
+            llm = DeepSeekProvider(settings) if settings.deepseek_api_key else None
+            embeddings = create_embeddings(settings)
+            app.state.service = MemoryService(store, settings, llm=llm, embeddings=embeddings)
+            app.state.queue = EventQueue(store, settings)
             yield
         finally:
             if embeddings is not None:
@@ -64,6 +71,9 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
 
     def current_service(request: Request) -> MemoryService:
         return request.app.state.service
+
+    def current_queue(request: Request) -> EventQueue:
+        return request.app.state.queue
 
     def principal(x_api_key: Annotated[str | None, Header()] = None) -> str | None:
         if not settings.api_keys:
@@ -92,6 +102,10 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
     @app.exception_handler(ConflictError)
     async def conflict_handler(request: Request, exc: ConflictError):
         return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+    @app.exception_handler(NotFoundError)
+    async def not_found_handler(request: Request, exc: NotFoundError):
+        return JSONResponse(status_code=404, content={"detail": str(exc)})
 
     @app.exception_handler(InvalidSourceError)
     async def source_handler(request: Request, exc: InvalidSourceError):
@@ -152,6 +166,21 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
             raise HTTPException(404, "Memory not found")
         return memory
 
+    @app.get("/v1/memories/{memory_id}/sources", response_model=SourcePage)
+    def sources(
+        memory_id: str,
+        scope: Scope = Depends(query_scope),
+        limit: int = Query(100, ge=1, le=1000),
+        offset: int = Query(0, ge=0),
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(scope, namespace)
+        page = svc.store.source_page(scope, memory_id, limit=limit, offset=offset)
+        if page is None:
+            raise HTTPException(404, "Memory not found")
+        return page
+
     @app.delete("/v1/memories/{memory_id}", response_model=DeleteResponse)
     def delete_memory(
         memory_id: str,
@@ -186,6 +215,47 @@ def create_app(settings: Settings | None = None, service: MemoryService | None =
     ):
         authorize(body.scope, namespace)
         return svc.ingest(body)
+
+    @app.post("/v1/events", response_model=EventResponse, status_code=202)
+    def enqueue(
+        body: EventRequest,
+        namespace: str | None = Depends(principal),
+        queue: EventQueue = Depends(current_queue),
+    ):
+        authorize(body.scope, namespace)
+        return queue.enqueue(body)
+
+    @app.get("/v1/events/{event_id}", response_model=EventResponse)
+    def get_event(
+        event_id: str,
+        scope: Scope = Depends(query_scope),
+        namespace: str | None = Depends(principal),
+        queue: EventQueue = Depends(current_queue),
+    ):
+        authorize(scope, namespace)
+        result = queue.get(scope, event_id)
+        if result is None:
+            raise HTTPException(404, "Event not found")
+        return result
+
+    @app.post("/v1/events/{event_id}/retry", response_model=JobInfo)
+    def retry_event(
+        event_id: str,
+        body: Scope,
+        namespace: str | None = Depends(principal),
+        queue: EventQueue = Depends(current_queue),
+    ):
+        authorize(body, namespace)
+        return queue.retry(body, event_id)
+
+    @app.post("/v1/index", response_model=IndexResponse)
+    def index_memories(
+        body: IndexRequest,
+        namespace: str | None = Depends(principal),
+        svc: MemoryService = Depends(current_service),
+    ):
+        authorize(body.scope, namespace)
+        return svc.index(body)
 
     @app.post("/v1/recall", response_model=RecallResponse)
     def recall(

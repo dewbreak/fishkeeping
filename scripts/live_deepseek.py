@@ -34,10 +34,11 @@ MAX_OUTPUT_TOKENS = 1024
 class MeteredTransport(httpx.BaseTransport):
     """Budget guard and sanitized usage accounting; no retries and no response logging."""
 
-    def __init__(self, inner: httpx.BaseTransport | None = None):
+    def __init__(self, inner: httpx.BaseTransport | None = None, *, max_calls: int = MAX_CALLS):
         self.inner = inner or httpx.HTTPTransport(retries=0)
         self.calls: list[dict] = []
         self.phase = "unset"
+        self.max_calls = min(MAX_CALLS, max(0, max_calls))
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         payload = json.loads(request.content)
@@ -49,7 +50,7 @@ class MeteredTransport(httpx.BaseTransport):
             or payload.get("model") != "deepseek-flash"
             or payload.get("thinking") != {"type": "disabled"}
             or not 1 <= payload.get("max_tokens", 0) <= MAX_OUTPUT_TOKENS
-            or len(self.calls) >= MAX_CALLS
+            or len(self.calls) >= self.max_calls
         ):
             raise httpx.TransportError("Live acceptance request exceeded its configured budget")
         entry: dict = {"phase": self.phase}

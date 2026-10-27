@@ -39,7 +39,7 @@ def test_chat_example_uses_shared_settings_and_economical_payload(monkeypatch):
         def context(self, *args, **kwargs):
             return SimpleNamespace(context="用户喜欢 Python")
 
-        def ingest(self, **kwargs):
+        def enqueue(self, **kwargs):
             events.append(kwargs)
 
     def post(url, **kwargs):

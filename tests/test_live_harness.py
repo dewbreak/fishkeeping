@@ -75,18 +75,19 @@ def test_budget_rejects_expensive_requests_before_network(change):
     assert not meter.calls
 
 
-def test_call_count_limit_and_wrong_host_are_enforced():
+@pytest.mark.parametrize("limit", [0, 1, MAX_CALLS, MAX_CALLS + 1])
+def test_call_count_limit_and_wrong_host_are_enforced(limit):
     seen = []
 
     def reply(request):
         seen.append(request)
         return httpx.Response(429, json={"error": "private response"})
 
-    meter = MeteredTransport(httpx.MockTransport(reply))
+    meter = MeteredTransport(httpx.MockTransport(reply), max_calls=limit)
     with httpx.Client(transport=meter) as client:
         with pytest.raises(httpx.TransportError):
             client.post("https://wrong.example/chat/completions", json=request_payload())
-        for _ in range(MAX_CALLS):
+        for _ in range(min(MAX_CALLS, limit)):
             assert (
                 client.post(
                     "https://api.deepseek.com/chat/completions", json=request_payload()
@@ -95,5 +96,5 @@ def test_call_count_limit_and_wrong_host_are_enforced():
             )
         with pytest.raises(httpx.TransportError):
             client.post("https://api.deepseek.com/chat/completions", json=request_payload())
-    assert len(seen) == MAX_CALLS
+    assert len(seen) == min(MAX_CALLS, limit)
     assert "private" not in json.dumps(meter.calls)

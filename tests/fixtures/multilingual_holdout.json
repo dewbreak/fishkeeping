@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "description": "Independent synthetic holdout frozen before first calibration run.",
+  "clock": "2026-10-28T00:00:00+00:00",
+  "scope": {
+    "namespace": "calibration-holdout",
+    "user_id": "synthetic"
+  },
+  "records": [
+    {
+      "key": "bike",
+      "content": "我每天骑自行车上班。",
+      "kind": "semantic"
+    },
+    {
+      "key": "vegetarian",
+      "content": "I follow a vegetarian diet and avoid eating meat.",
+      "kind": "semantic"
+    },
+    {
+      "key": "budget",
+      "content": "我的每月开销预算上限是两千元。",
+      "kind": "semantic"
+    },
+    {
+      "key": "backup_drive",
+      "content": "All project backups are stored on an external hard drive.",
+      "kind": "semantic"
+    },
+    {
+      "key": "bedtime",
+      "content": "我习惯每晚十一点睡觉。",
+      "kind": "semantic"
+    },
+    {
+      "key": "cooking_music",
+      "content": "I like listening to jazz while cooking.",
+      "kind": "semantic"
+    },
+    {
+      "key": "meeting_reminder",
+      "content": "请在会议开始前一天给我发送提醒。",
+      "kind": "semantic"
+    },
+    {
+      "key": "review_comments",
+      "content": "For code reviews, I want concise comments with concrete examples.",
+      "kind": "semantic"
+    }
+  ],
+  "cases": [
+    {
+      "id": "bike_translation",
+      "query": "The user rides a bike to work every day.",
+      "expected": [
+        "bike"
+      ],
+      "category": "translation"
+    },
+    {
+      "id": "vegetarian_paraphrase",
+      "query": "I do not eat meat.",
+      "expected": [
+        "vegetarian"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "budget_paraphrase",
+      "query": "每个月花钱不能超过两千元。",
+      "expected": [
+        "budget"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "drive_translation",
+      "query": "项目备份放在外置硬盘中。",
+      "expected": [
+        "backup_drive"
+      ],
+      "category": "translation"
+    },
+    {
+      "id": "bedtime_translation",
+      "query": "Bedtime is eleven at night.",
+      "expected": [
+        "bedtime"
+      ],
+      "category": "translation"
+    },
+    {
+      "id": "music_paraphrase",
+      "query": "Jazz is my preferred music when preparing dinner.",
+      "expected": [
+        "cooking_music"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "reminder_paraphrase",
+      "query": "开会前二十四小时提醒我。",
+      "expected": [
+        "meeting_reminder"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "review_translation",
+      "query": "审查代码时希望评论简短，并附上具体例子。",
+      "expected": [
+        "review_comments"
+      ],
+      "category": "translation"
+    },
+    {
+      "id": "budget_question",
+      "query": "What is the monthly spending limit?",
+      "expected": [
+        "budget"
+      ],
+      "category": "retrieval-question"
+    },
+    {
+      "id": "commute_question",
+      "query": "How do I travel to work?",
+      "expected": [
+        "bike"
+      ],
+      "category": "retrieval-question"
+    },
+    {
+      "id": "music_question",
+      "query": "做饭时听什么音乐？",
+      "expected": [
+        "cooking_music"
+      ],
+      "category": "retrieval-question"
+    },
+    {
+      "id": "reminder_question",
+      "query": "When should the meeting notification arrive?",
+      "expected": [
+        "meeting_reminder"
+      ],
+      "category": "retrieval-question"
+    },
+    {
+      "id": "unrelated-01",
+      "query": "木星有多少颗卫星？",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-02",
+      "query": "How do volcanoes form?",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-03",
+      "query": "请证明勾股定理。",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-04",
+      "query": "Who composed The Magic Flute?",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-05",
+      "query": "南极冰盖的平均厚度是多少？",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-06",
+      "query": "How is a violin tuned?",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-07",
+      "query": "什么是DNA的双螺旋结构？",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-08",
+      "query": "When was the printing press invented?",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-09",
+      "query": "海豚如何通过回声定位猎物？",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-10",
+      "query": "Explain the rules of cricket.",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-11",
+      "query": "太阳日食为什么会发生？",
+      "expected": [],
+      "category": "unrelated-question"
+    },
+    {
+      "id": "unrelated-12",
+      "query": "How are ceramic tiles manufactured?",
+      "expected": [],
+      "category": "unrelated-question"
+    }
+  ]
+}

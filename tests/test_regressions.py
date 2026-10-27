@@ -117,6 +117,8 @@ def test_recall_discards_memory_invalidated_during_embedding_request(store, chan
             return [[1.0, 0.0] for _ in texts]
 
     service = MemoryService(store, Settings(_env_file=None), embeddings=RacingEmbeddings())
+    store.set_embedding(original.id, "test-embedding-race", [1.0, 0.0])
+    store.set_embedding(summary.id, "test-embedding-race", [1.0, 0.0])
     response = service.recall(RecallRequest(scope=scope, query="Paris"))
     returned_ids = {hit.memory.id for hit in response.hits}
     assert original.id not in returned_ids

@@ -1,6 +1,6 @@
-# 离线检索诊断集
+# 检索诊断与本地多语言评测
 
-日期：2026-10-28。此工具用于比较代码修改前后的行为，**不是正式 benchmark，也不代表真实用户任务成功率**。数据全部为人工构造，不读取用户数据库、`.env` 或真实模型输出，不发送网络请求。
+日期：2026-10-28。此工具用于比较代码修改前后的行为，**不是正式 benchmark，也不代表真实用户任务成功率**。数据全部为人工构造，不读取用户数据库或 `.env`。默认词法运行不发网络请求；显式 `--local-embeddings` 首次下载固定模型，之后在本地 CPU 编码，没有付费 API 调用。
 
 ## 如何运行
 
@@ -44,7 +44,45 @@ uv run python scripts/evaluate.py --output .tmp/evaluation.json
 - 查询 `quiet workspace`，目标记忆是 `I prefer a silent office.`，没有共享词项。
 - 查询 `oolong beverage`，目标记忆是 `我喜欢乌龙茶。`，需要跨语言语义匹配。
 
-这两项失败是默认词法能力的实际边界，不能通过删除案例、替换成原文关键词或硬编码同义词来宣称质量提高。今后接入真实 embedding 后，应在同一标签上另行运行和报告结果，分别记录模型版本、成本和延迟；本次离线结果不能作为 embedding 验收。
+这两项失败保留在原始词法基线中，没有修改查询或标签。当前词法结果保存为 [lexical-2026-10-28.json](validation/lexical-2026-10-28.json)。
+
+## 本轮真实本地向量结果
+
+采用 FastEmbed 0.9.1、固定 revision 的多语言 MiniLM，384 维、FP16 ONNX、CPU 两线程。模型来源、许可和分段约定见 [选型记录](research/multilingual-embeddings.md)。
+
+| 同一原始 22 题 | Recall@3 | MRR@3 | 严格空结果 | 禁止命中 |
+| --- | --- | --- | --- | --- |
+| 词法 | 0.857143 | 0.857143 | 8/8 | 0 |
+| 初始本地向量，阈值 0.35 | 1.000000 | 1.000000 | **4/8（失败）** | 0 |
+| 最终混合检索，阈值 0.50 | **0.928571** | **0.928571** | **8/8** | **0** |
+
+保留 [初始失败记录](validation/multilingual-initial-2026-10-28.json)、[相似度诊断](validation/embedding-calibration-2026-10-28.json) 和 [最终完整流水线记录](validation/multilingual-2026-10-28.json)。降低阈值虽然能找回 `oolong beverage`，也会把无关问题关联到已有城市等事实；其正确匹配余弦约 0.405，比一个无关匹配约 0.412 还低。因此使用保守阈值 0.50，保留这项漏召回，没有为追求 100% 而放宽无关结果门槛。`quiet workspace` 已找回对应 silent office。
+
+另增加 [8 条记忆、24 个查询](../tests/fixtures/multilingual_holdout.json)，覆盖翻译、改写、问句及 12 个无关问题。真实完整服务得到 **Recall@3 / MRR@3 = 0.916667，严格空结果 12/12，禁止命中 0**，见 [新增集结果](validation/multilingual-regression-2026-10-28.json)。保留 `How do I travel to work?` 的漏召回。该集合最初独立构造，但已用于阈值比较和定位英文 is/are 等虚词误召回，现属于回归校准数据，不能再作为未见测试集。
+
+词法路径也修复了仅因英文功能词重合便召回无关记忆的问题；FTS 候选和最终排序使用相同查询词过滤，保留否定、时间关系词及技术名。存储原文与索引文档分词不变。该启发式仍可能影响仅由功能词组成的查询，并不能解决所有自然语言歧义。
+
+复验（安装 `local` extra，约 252 MB 模型下载；报告中的计时包含加载和推理，不是纯查询 SLA）：
+
+```text
+uv sync --extra dev --extra local --locked
+uv run --extra local python scripts/evaluate.py --local-embeddings --output .tmp/multilingual.json
+uv run --extra local python scripts/evaluate.py --local-embeddings --fixture tests/fixtures/multilingual_holdout.json --output .tmp/multilingual-regression.json
+uv run --extra local python scripts/diagnose_embeddings.py --output .tmp/calibration.json
+uv run --extra local python scripts/smoke.py --local-embeddings
+```
+
+`diagnose_embeddings.py` 只使用缓存，缓存缺失会失败；它输出原始 cosine 与门控诊断，不能替代 `evaluate.py` 的完整排序结果。普通 CI 不下载模型，只运行无网络适配器测试与词法诊断。
+
+## 离线规模诊断
+
+[万条记录报告](validation/storage-scale-2026-10-28.json) 使用 10000 条本 scope 记录、3 条其他 scope 记录、384 维固定合成向量。旧 needle 记忆能被词法与向量找回，5 次测量的词法中位数约 **0.218 ms**，完整向量 top-100 中位数约 **1.026 s**。向量由固定公式产生，不是模型语义质量测试。
+
+环境为 Windows 11 / Python 3.12.4 / SQLite 3.45.3、内存数据库、单线程；不含磁盘 fsync、并发和模型查询编码，不是生产 p95 或 SLA。当前向量仍为 O(N×D) 精确扫描，top-k 限制不减少扫描量；规模增长后应基于业务负载引入 ANN 或专用向量索引。
+
+```text
+uv run python scripts/benchmark_storage.py --records 10000 --output .tmp/storage-scale.json
+```
 
 ## 使用与扩充
 

@@ -8,6 +8,7 @@ from returning through a retry, while discarding the deleted response payload.
 from __future__ import annotations
 
 import hashlib
+import heapq
 import json
 import math
 import sqlite3
@@ -20,6 +21,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from fishkeeping.models import Kind, Memory, MemoryInput, Scope
+from fishkeeping.retrieval import query_terms, tokenize
 
 
 class ConflictError(ValueError):
@@ -58,6 +60,23 @@ def _fingerprint(item: MemoryInput) -> str:
     return hashlib.sha256(json.dumps(value, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
+def _fts_terms(content: str) -> list[str]:
+    # Encode complete application tokens so FTS5 cannot split contractions,
+    # hyphenated words or CJK pairs differently from retrieval.tokenize.
+    return ["t" + token.encode("utf-8").hex() for token in tokenize(content)]
+
+
+def _valid_vector(vector: object) -> bool:
+    try:
+        return (
+            isinstance(vector, list)
+            and bool(vector)
+            and all(type(value) in (int, float) and math.isfinite(value) for value in vector)
+        )
+    except OverflowError:
+        return False
+
+
 class Store:
     """Single-node durable memory repository. Call ``close`` when done."""
 
@@ -77,7 +96,7 @@ class Store:
             self._conn.execute("PRAGMA synchronous=NORMAL")
             with self._transaction():
                 version = self._conn.execute("PRAGMA user_version").fetchone()[0]
-                if version not in (0, 1):
+                if version not in (0, 1, 2):
                     raise ValueError(f"unsupported database schema version: {version}")
                 statements = [
                     """CREATE TABLE IF NOT EXISTS memories (
@@ -128,7 +147,28 @@ class Store:
                 ]
                 for statement in statements:
                     self._conn.execute(statement)
-                self._conn.execute("PRAGMA user_version=1")
+                try:
+                    self._conn.execute(
+                        "CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts "
+                        "USING fts5(memory_id UNINDEXED, tokens)"
+                    )
+                except sqlite3.OperationalError as exc:
+                    raise RuntimeError(
+                        "SQLite FTS5 is required for memory retrieval; install a Python "
+                        "distribution whose SQLite build includes ENABLE_FTS5"
+                    ) from exc
+                if version < 2:
+                    # Both relation and index backfills share this migration's
+                    # transaction. A failure leaves the old version intact.
+                    for row in self._conn.execute("SELECT document FROM memories").fetchall():
+                        memory = Memory.model_validate_json(row[0])
+                        for source_id in memory.source_ids:
+                            self._conn.execute(
+                                "INSERT OR IGNORE INTO sources(memory_id,source_id) VALUES (?,?)",
+                                (memory.id, source_id),
+                            )
+                        self._index_memory(memory)
+                self._conn.execute("PRAGMA user_version=2")
         except BaseException:
             self._conn.close()
             raise
@@ -153,9 +193,35 @@ class Store:
             "SELECT document FROM memories WHERE namespace=? AND user_id=? AND agent_id=? AND id=?",
             (*scope.key(), memory_id),
         ).fetchone()
-        return Memory.model_validate_json(row[0]) if row else None
+        return self._hydrate(row[0]) if row else None
+
+    def _source_view(self, memory: Memory) -> Memory:
+        rows = self._conn.execute(
+            "SELECT source_id,COUNT(*) OVER () FROM sources "
+            "WHERE memory_id=? ORDER BY rowid LIMIT 100",
+            (memory.id,),
+        ).fetchall()
+        memory.source_ids = [row[0] for row in rows]
+        memory.source_count = rows[0][1] if rows else 0
+        return memory
+
+    def _hydrate(self, document: str) -> Memory:
+        return self._source_view(Memory.model_validate_json(document))
+
+    def _index_memory(self, memory: Memory) -> None:
+        rowid = self._conn.execute(
+            "SELECT rowid FROM memories WHERE id=?", (memory.id,)
+        ).fetchone()[0]
+        self._conn.execute("DELETE FROM memory_fts WHERE rowid=?", (rowid,))
+        self._conn.execute(
+            "INSERT INTO memory_fts(rowid,memory_id,tokens) VALUES (?,?,?)",
+            (rowid, memory.id, " ".join(_fts_terms(memory.content))),
+        )
 
     def _save(self, memory: Memory) -> None:
+        previous = self._conn.execute(
+            "SELECT document FROM memories WHERE id=?", (memory.id,)
+        ).fetchone()
         self._conn.execute(
             """INSERT INTO memories VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(id) DO UPDATE SET
@@ -179,6 +245,14 @@ class Store:
                 "INSERT OR IGNORE INTO sources(memory_id,source_id) VALUES (?,?)",
                 (memory.id, source_id),
             )
+        # The relation table is canonical: a response's bounded preview must
+        # never replace or erase provenance beyond its first 100 entries.
+        self._source_view(memory)
+        self._conn.execute(
+            "UPDATE memories SET document=? WHERE id=?", (memory.model_dump_json(), memory.id)
+        )
+        if previous is None or json.loads(previous[0])["content"] != memory.content:
+            self._index_memory(memory)
 
     def _validate_sources(
         self,
@@ -223,7 +297,7 @@ class Store:
             (memory_id, *scope.key()),
         ).fetchall()
         for row in rows:
-            derived = Memory.model_validate_json(row[0])
+            derived = self._hydrate(row[0])
             derived.status = "archived"
             derived.updated_at = now
             self._save(derived)
@@ -247,7 +321,7 @@ class Store:
         ).fetchall()
         existing: list[Memory] = []
         for row in rows:
-            memory = Memory.model_validate_json(row[0])
+            memory = self._hydrate(row[0])
             if memory.expires_at is not None and memory.expires_at <= now:
                 if item.fact_key is not None:
                     self._archive_descendants(item.scope, memory.id, now)
@@ -269,12 +343,13 @@ class Store:
                         for source_id in requested_sources
                         if not self._would_create_cycle(memory.id, source_id)
                     ]
-                new_sources = list(dict.fromkeys([*memory.source_ids, *requested_sources]))
-                if len(new_sources) > 100:
-                    raise InvalidSourceError("a memory cannot reference more than 100 sources")
-                self._validate_sources(item.scope, new_sources, memory.id)
-                if new_sources != memory.source_ids:
-                    memory.source_ids = new_sources
+                self._validate_sources(item.scope, requested_sources, memory.id)
+                changes = self._conn.total_changes
+                self._conn.executemany(
+                    "INSERT OR IGNORE INTO sources(memory_id,source_id) VALUES (?,?)",
+                    [(memory.id, source_id) for source_id in requested_sources],
+                )
+                if self._conn.total_changes != changes:
                     memory.updated_at = now
                     self._save(memory)
                 return memory
@@ -415,7 +490,215 @@ class Store:
         params.extend([limit, offset])
         with self._lock:
             rows = self._conn.execute(query, params).fetchall()
-            return [Memory.model_validate_json(row[0]) for row in rows]
+            return [self._hydrate(row[0]) for row in rows]
+
+    def source_page(
+        self, scope: Scope, memory_id: str, limit: int = 100, offset: int = 0
+    ) -> dict | None:
+        """Page complete provenance, including that of archived memories."""
+        if limit < 1 or limit > 100 or offset < 0:
+            raise ValueError("source limit must be 1..100 and offset must be nonnegative")
+        with self._lock:
+            # The total and page must describe one snapshot, including when
+            # another process is adding sources or deleting the memory.
+            self._conn.execute("BEGIN")
+            try:
+                exists = self._conn.execute(
+                    "SELECT 1 FROM memories WHERE namespace=? AND user_id=? "
+                    "AND agent_id=? AND id=?",
+                    (*scope.key(), memory_id),
+                ).fetchone()
+                if exists is None:
+                    result = None
+                else:
+                    total = self._conn.execute(
+                        "SELECT COUNT(*) FROM sources WHERE memory_id=?", (memory_id,)
+                    ).fetchone()[0]
+                    items = [
+                        row[0]
+                        for row in self._conn.execute(
+                            "SELECT source_id FROM sources WHERE memory_id=? "
+                            "ORDER BY rowid LIMIT ? OFFSET ?",
+                            (memory_id, limit, offset),
+                        )
+                    ]
+                    result = {
+                        "memory_id": memory_id,
+                        "items": items,
+                        "total": total,
+                        "limit": limit,
+                        "offset": offset,
+                        "has_more": offset + len(items) < total,
+                    }
+                self._conn.execute("COMMIT")
+                return result
+            except BaseException:
+                self._conn.execute("ROLLBACK")
+                raise
+
+    @staticmethod
+    def _active_filter(
+        scope: Scope,
+        session_id: str | None,
+        kinds: list[Kind] | None,
+        now: datetime | None,
+    ) -> tuple[str, list]:
+        clauses = [
+            "m.namespace=?",
+            "m.user_id=?",
+            "m.agent_id=?",
+            "m.status='active'",
+            "(m.expires_at IS NULL OR m.expires_at>?)",
+        ]
+        params: list = [*scope.key(), _timestamp(_time(now))]
+        if session_id is None:
+            clauses.append("m.kind!='working'")
+        else:
+            clauses.append("(m.kind!='working' OR m.session_id=?)")
+            params.append(session_id)
+        if kinds is not None:
+            if kinds:
+                clauses.append("m.kind IN (" + ",".join("?" for _ in kinds) + ")")
+                params.extend(kinds)
+            else:
+                clauses.append("0")
+        return " AND ".join(clauses), params
+
+    def lexical_candidates(
+        self,
+        scope: Scope,
+        query: str,
+        limit: int = 5000,
+        session_id: str | None = None,
+        kinds: list[Kind] | None = None,
+        now: datetime | None = None,
+    ) -> list[Memory]:
+        """Retrieve by FTS relevance across the scope, before applying the cap."""
+        if limit < 0:
+            raise ValueError("limit must be nonnegative")
+        terms = list(
+            dict.fromkeys("t" + token.encode("utf-8").hex() for token in query_terms(query))
+        )
+        if not terms or not limit:
+            return []
+        # All terms are ASCII hex words. User punctuation/operators never enter
+        # MATCH syntax, and OR retains partial lexical matches for final ranking.
+        match = " OR ".join('"' + term + '"' for term in terms)
+        where, params = self._active_filter(scope, session_id, kinds, now)
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT m.document FROM memory_fts JOIN memories m ON m.rowid=memory_fts.rowid "
+                "WHERE memory_fts MATCH ? AND "
+                + where
+                + " ORDER BY bm25(memory_fts),m.created_at DESC,m.id DESC LIMIT ?",
+                [match, *params, limit],
+            ).fetchall()
+            return [self._hydrate(row[0]) for row in rows]
+
+    def count_active(
+        self,
+        scope: Scope,
+        session_id: str | None = None,
+        kinds: list[Kind] | None = None,
+        now: datetime | None = None,
+    ) -> int:
+        where, params = self._active_filter(scope, session_id, kinds, now)
+        with self._lock:
+            return self._conn.execute(
+                "SELECT COUNT(*) FROM memories m WHERE " + where, params
+            ).fetchone()[0]
+
+    def embedding_missing(
+        self, scope: Scope, model_key: str, limit: int = 64, now: datetime | None = None
+    ) -> list[Memory]:
+        """Oldest active long-term records lacking this model's cached vector."""
+        if limit < 0:
+            raise ValueError("limit must be nonnegative")
+        where, params = self._active_filter(scope, None, None, now)
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT m.document FROM memories m WHERE "
+                + where
+                + " AND NOT EXISTS (SELECT 1 FROM embeddings e "
+                "WHERE e.memory_id=m.id AND e.model_key=?) "
+                "ORDER BY m.created_at,m.id LIMIT ?",
+                [*params, model_key, limit],
+            ).fetchall()
+            return [self._hydrate(row[0]) for row in rows]
+
+    def embedding_coverage(
+        self,
+        scope: Scope,
+        model_key: str,
+        session_id: str | None = None,
+        kinds: list[Kind] | None = None,
+        now: datetime | None = None,
+    ) -> dict:
+        where, params = self._active_filter(scope, session_id, kinds, now)
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT COUNT(*),COUNT(e.memory_id) FROM memories m LEFT JOIN embeddings e "
+                "ON e.memory_id=m.id AND e.model_key=? WHERE " + where,
+                [model_key, *params],
+            ).fetchone()
+            return {"total": row[0], "indexed": row[1]}
+
+    def vector_candidates(
+        self,
+        scope: Scope,
+        model_key: str,
+        query_vector: list[float],
+        limit: int = 5000,
+        session_id: str | None = None,
+        kinds: list[Kind] | None = None,
+        now: datetime | None = None,
+    ) -> list[Memory]:
+        """Exact cosine top-k over all eligible cached vectors; O(N * dimensions).
+
+        Invalid caches raise ValueError so callers can report degraded retrieval
+        instead of claiming complete semantic coverage. This single-node backend
+        keeps only top-k document bodies in memory, and never restricts the search
+        to the most recent N memories.
+        """
+        if limit < 0:
+            raise ValueError("limit must be nonnegative")
+        if not _valid_vector(query_vector):
+            raise ValueError("query embedding must be a nonempty list of finite numbers")
+        norm = math.hypot(*query_vector)
+        if not norm or not math.isfinite(norm):
+            raise ValueError("query embedding must have a finite nonzero norm")
+        if not limit:
+            return []
+        unit = [value / norm for value in query_vector]
+        where, params = self._active_filter(scope, session_id, kinds, now)
+        best: list[tuple[float, str, str, str]] = []
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT m.id,m.created_at,m.document,e.vector_json FROM memories m "
+                "JOIN embeddings e ON e.memory_id=m.id AND e.model_key=? WHERE " + where,
+                [model_key, *params],
+            )
+            for row in rows:
+                try:
+                    vector = json.loads(row["vector_json"])
+                    if not _valid_vector(vector):
+                        raise ValueError("cached embedding contains invalid values")
+                    if len(vector) != len(unit):
+                        raise ValueError("cached embedding dimension differs from query")
+                    magnitude = math.hypot(*vector)
+                    if not magnitude or not math.isfinite(magnitude):
+                        raise ValueError("cached embedding must have a finite nonzero norm")
+                    score = sum(a * (b / magnitude) for a, b in zip(unit, vector, strict=True))
+                except (ValueError, TypeError, OverflowError) as exc:
+                    raise ValueError(
+                        "invalid embedding cache for this model; rebuild its embeddings"
+                    ) from exc
+                candidate = (score, row["created_at"], row["id"], row["document"])
+                if len(best) < limit:
+                    heapq.heappush(best, candidate)
+                elif candidate > best[0]:
+                    heapq.heapreplace(best, candidate)
+            return [self._hydrate(candidate[3]) for candidate in sorted(best, reverse=True)]
 
     def rehearse(self, scope: Scope, memory_id: str, now: datetime | None = None) -> Memory | None:
         with self._transaction():
@@ -455,9 +738,7 @@ class Store:
                         f"AND id IN ({placeholders})",
                         (*scope.key(), clock, *chunk),
                     ).fetchall()
-                    current.update(
-                        {row["id"]: Memory.model_validate_json(row["document"]) for row in rows}
-                    )
+                    current.update({row["id"]: self._hydrate(row["document"]) for row in rows})
                 self._conn.execute("COMMIT")
             except BaseException:
                 self._conn.execute("ROLLBACK")
@@ -520,11 +801,15 @@ class Store:
                 scope.key(),
             ).fetchall()
             for row in survivors:
-                memory = Memory.model_validate_json(row[0])
+                memory = self._hydrate(row[0])
                 if memory.id not in ids and memory.superseded_by in ids:
                     memory.superseded_by = None
                     self._save(memory)
             for deleted_id in ids:
+                self._conn.execute(
+                    "DELETE FROM memory_fts WHERE rowid=(SELECT rowid FROM memories WHERE id=?)",
+                    (deleted_id,),
+                )
                 self._conn.execute("DELETE FROM memories WHERE id=?", (deleted_id,))
             return sorted(ids)
 
@@ -566,23 +851,39 @@ class Store:
                 result.update({row[0]: json.loads(row[1]) for row in rows})
         return result
 
-    def set_embedding(self, memory_id: str, model_key: str, vector: list[float]) -> None:
-        if not vector or any(
-            isinstance(value, bool)
-            or not isinstance(value, (int, float))
-            or not math.isfinite(value)
-            for value in vector
-        ):
+    def clear_embeddings(self, scope: Scope, model_key: str) -> int:
+        """Remove one scope/model cache, including inactive historical records."""
+        with self._transaction():
+            cursor = self._conn.execute(
+                "DELETE FROM embeddings WHERE model_key=? AND memory_id IN ("
+                "SELECT id FROM memories WHERE namespace=? AND user_id=? AND agent_id=?)",
+                (model_key, *scope.key()),
+            )
+            return cursor.rowcount
+
+    def set_embedding(
+        self,
+        memory_id: str,
+        model_key: str,
+        vector: list[float],
+        now: datetime | None = None,
+    ) -> bool:
+        """Cache only a still-active record, returning whether a vector was saved."""
+        if not _valid_vector(vector):
             raise ValueError("embedding must be a nonempty list of finite numbers")
         with self._transaction():
             exists = self._conn.execute(
-                "SELECT 1 FROM memories WHERE id=?", (memory_id,)
+                "SELECT 1 FROM memories WHERE id=? AND status='active' "
+                "AND (expires_at IS NULL OR expires_at>?)",
+                (memory_id, _timestamp(_time(now))),
             ).fetchone()
             if exists is None:
-                # A concurrent deletion must not recreate a memory through its cache.
-                return
+                # Recheck inside the write transaction: refresh_active may have
+                # completed before a concurrent archive, expiry or deletion.
+                return False
             self._conn.execute(
                 "INSERT INTO embeddings VALUES (?,?,?) ON CONFLICT(memory_id,model_key) "
                 "DO UPDATE SET vector_json=excluded.vector_json",
                 (memory_id, model_key, json.dumps(vector, allow_nan=False)),
             )
+            return True

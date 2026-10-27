@@ -72,6 +72,12 @@ class Memory(MemoryInput):
     expires_at: datetime | None = None
     access_count: int = 0
     superseded_by: str | None = None
+    source_count: int = Field(default=0, ge=0)
+
+    @model_validator(mode="after")
+    def count_preview_sources(self) -> Memory:
+        self.source_count = max(self.source_count, len(self.source_ids))
+        return self
 
 
 class Message(Model):
@@ -96,6 +102,54 @@ class IngestRequest(Model):
 class IngestResponse(Model):
     memories: list[Memory]
     replayed: bool
+
+
+class EventRequest(IngestRequest):
+    extract: bool = True
+
+
+class JobInfo(Model):
+    id: str
+    event_id: str
+    state: Literal["pending", "processing", "succeeded", "failed", "cancelled"]
+    attempts: int
+    max_attempts: int
+    next_attempt_at: datetime | None = None
+    last_error_code: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    result_ids: list[str] = Field(default_factory=list)
+
+
+class EventResponse(Model):
+    event_id: str
+    scope: Scope
+    episode: Memory
+    job: JobInfo | None = None
+    replayed: bool = False
+
+
+class SourcePage(Model):
+    memory_id: str
+    items: list[str]
+    total: int
+    limit: int
+    offset: int
+    has_more: bool
+
+
+class IndexRequest(Model):
+    scope: Scope
+    limit: int = Field(default=64, ge=1, le=1024)
+    rebuild: bool = False
+
+
+class IndexResponse(Model):
+    processed: int
+    total: int
+    indexed: int
+    complete: bool
+    model_key: str
 
 
 class RecallRequest(Model):

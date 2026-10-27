@@ -10,6 +10,7 @@ from fishkeeping.models import (
     ConsolidateRequest,
     ContextRequest,
     ExtractedFact,
+    IndexRequest,
     IngestRequest,
     MaintenanceRequest,
     MemoryInput,
@@ -345,25 +346,32 @@ def test_embeddings_cache_documents_but_refresh_queries(service):
     embeddings = FakeEmbeddings()
     service.embeddings = embeddings
     request = RecallRequest(scope=SCOPE, query="tea preference")
+    cold = service.recall(request)
+    assert cold.retrieval_mode == "lexical"
+    assert embeddings.calls == []
+    assert service.index(IndexRequest(scope=SCOPE)).complete
     result = service.recall(request)
     assert result.retrieval_mode == "hybrid"
     assert [hit.memory.id for hit in result.hits] == [stored.id]
-    assert embeddings.calls == [[request.query], [stored.content]]
+    assert embeddings.calls == [[stored.content], [request.query]]
     result = service.recall(request)
     assert result.retrieval_mode == "hybrid"
-    assert embeddings.calls == [[request.query], [stored.content], [request.query]]
+    assert embeddings.calls == [[stored.content], [request.query], [request.query]]
     assert service.store.get_embeddings([stored.id], "model-v1")[stored.id] == [1, 0]
 
 
 def test_embedding_model_change_uses_a_separate_cache(service):
     stored = remember(service)
     service.embeddings = FakeEmbeddings()
-    service.recall(RecallRequest(scope=SCOPE, query="tea"))
+    service.index(IndexRequest(scope=SCOPE))
     replacement = FakeEmbeddings(model_key="model-v2", dimensions=3)
     service.embeddings = replacement
+    assert service.recall(RecallRequest(scope=SCOPE, query="tea")).retrieval_mode == "lexical"
+    assert replacement.calls == []
+    service.index(IndexRequest(scope=SCOPE))
     result = service.recall(RecallRequest(scope=SCOPE, query="tea"))
     assert result.retrieval_mode == "hybrid"
-    assert replacement.calls == [["tea"], [stored.content]]
+    assert replacement.calls == [[stored.content], ["tea"]]
     assert service.store.get_embeddings([stored.id], "model-v1")[stored.id] == [1, 0]
     assert service.store.get_embeddings([stored.id], "model-v2")[stored.id] == [1, 0, 0]
 
@@ -371,7 +379,7 @@ def test_embedding_model_change_uses_a_separate_cache(service):
 def test_cached_embedding_dimension_change_falls_back_to_lexical(service):
     stored = remember(service)
     service.embeddings = FakeEmbeddings()
-    service.recall(RecallRequest(scope=SCOPE, query="乌龙茶"))
+    service.index(IndexRequest(scope=SCOPE))
     service.embeddings = FakeEmbeddings(dimensions=3)
     result = service.recall(RecallRequest(scope=SCOPE, query="乌龙茶"))
     assert result.retrieval_mode == "lexical"
@@ -388,6 +396,7 @@ def test_new_embedding_dimension_mismatch_falls_back_to_lexical(service):
             return super().embed(texts)
 
     service.embeddings = ChangingEmbeddings()
+    service.index(IndexRequest(scope=SCOPE))
     result = service.recall(RecallRequest(scope=SCOPE, query="乌龙茶"))
     assert result.retrieval_mode == "lexical"
     assert result.warnings
@@ -396,6 +405,7 @@ def test_new_embedding_dimension_mismatch_falls_back_to_lexical(service):
 
 def test_embedding_outage_uses_lexical_results(service):
     stored = remember(service)
+    service.store.set_embedding(stored.id, "model-v1", [1, 0])
     service.embeddings = FakeEmbeddings(error=ProviderError("unavailable"))
     result = service.recall(RecallRequest(scope=SCOPE, query="乌龙茶"))
     assert result.retrieval_mode == "lexical"
@@ -411,37 +421,39 @@ def test_embedding_provider_is_not_called_with_empty_store(service):
     assert service.embeddings.calls == []
 
 
-def test_embedding_cache_warms_incrementally_without_partial_hybrid_claim(service):
+def test_explicit_indexing_reports_partial_hybrid_coverage(service):
     records = [remember(service, f"用户记录{index}") for index in range(5)]
     identifiers = [record.id for record in records]
-    service.settings.embedding_max_new_per_recall = 2
     service.embeddings = FakeEmbeddings()
     request = RecallRequest(scope=SCOPE, query="unmatched vocabulary")
 
     first = service.recall(request)
     assert first.retrieval_mode == "lexical"
-    assert first.hits == []  # Partial vectors must not affect incomplete recall.
-    assert any("warm-up" in warning for warning in first.warnings)
-    assert len(service.store.get_embeddings(identifiers, "model-v1")) == 2
+    assert first.hits == []
+    assert any("0/5" in warning for warning in first.warnings)
+    assert service.embeddings.calls == []
+    assert service.index(IndexRequest(scope=SCOPE, limit=2)).indexed == 2
 
     second = service.recall(request)
-    assert second.retrieval_mode == "lexical"
-    assert second.hits == []
+    assert second.retrieval_mode == "hybrid_partial"
+    assert len(second.hits) == 2
+    assert any("2/5" in warning for warning in second.warnings)
+    assert service.index(IndexRequest(scope=SCOPE, limit=2)).indexed == 4
     assert len(service.store.get_embeddings(identifiers, "model-v1")) == 4
 
+    assert service.index(IndexRequest(scope=SCOPE, limit=2)).complete
     third = service.recall(request)
     assert third.retrieval_mode == "hybrid"
     assert not third.warnings
     assert {hit.memory.id for hit in third.hits} == set(identifiers)
     assert len(service.store.get_embeddings(identifiers, "model-v1")) == 5
-    document_batches = service.embeddings.calls[1::2]
+    document_batches = [batch for batch in service.embeddings.calls if batch != [request.query]]
     assert [len(batch) for batch in document_batches] == [2, 2, 1]
     assert len({text for batch in document_batches for text in batch}) == 5
 
 
 def test_embedding_deadline_stops_further_batches_and_retains_completed_cache(service, monkeypatch):
     records = [remember(service, f"用户记录{index}") for index in range(70)]
-    service.settings.embedding_max_new_per_recall = 64
     service.settings.request_timeout = 45
     service.embeddings = FakeEmbeddings()
     clock_values = iter([1000.0, 1001.0, 1046.0])
@@ -450,16 +462,16 @@ def test_embedding_deadline_stops_further_batches_and_retains_completed_cache(se
         SimpleNamespace(monotonic=lambda: next(clock_values, 1046.0)),
     )
 
-    result = service.recall(RecallRequest(scope=SCOPE, query="unmatched vocabulary"))
-    assert result.retrieval_mode == "lexical"
-    assert result.warnings
-    assert result.hits == []
-    # One query, one successful batch, then the time budget prevents batch two.
-    assert [len(batch) for batch in service.embeddings.calls] == [1, 32]
+    result = service.index(IndexRequest(scope=SCOPE, limit=64))
+    assert not result.complete
+    assert result.processed == result.indexed == 32
+    assert result.total == 70
+    # Explicit indexing stops before batch two; no query was embedded.
+    assert [len(batch) for batch in service.embeddings.calls] == [32]
     assert len(service.store.get_embeddings([record.id for record in records], "model-v1")) == 32
 
 
-def test_embedding_warmup_never_sends_or_caches_foreign_scope_records(service):
+def test_explicit_indexing_never_sends_or_caches_foreign_scope_records(service):
     own = [remember(service, f"own record {index}") for index in range(3)]
     foreign_scopes = [
         Scope(user_id="bob", agent_id="helper"),
@@ -470,11 +482,12 @@ def test_embedding_warmup_never_sends_or_caches_foreign_scope_records(service):
         remember(service, f"foreign private record {index}", scope=scope)
         for index, scope in enumerate(foreign_scopes)
     ]
-    service.settings.embedding_max_new_per_recall = 2
     service.embeddings = FakeEmbeddings()
     request = RecallRequest(scope=SCOPE, query="record")
 
     assert service.recall(request).retrieval_mode == "lexical"
+    assert not service.index(IndexRequest(scope=SCOPE, limit=2)).complete
+    assert service.index(IndexRequest(scope=SCOPE, limit=2)).complete
     assert service.recall(request).retrieval_mode == "hybrid"
     cached = service.store.get_embeddings([record.id for record in own + foreign], "model-v1")
     assert set(cached) == {record.id for record in own}

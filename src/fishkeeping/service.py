@@ -13,6 +13,8 @@ from fishkeeping.models import (
     ConsolidateRequest,
     ContextRequest,
     ContextResponse,
+    IndexRequest,
+    IndexResponse,
     IngestRequest,
     IngestResponse,
     MaintenanceRequest,
@@ -89,51 +91,65 @@ class MemoryService:
             ]
             if not kinds:
                 return RecallResponse(hits=[], retrieval_mode="lexical")
-        candidates = self.store.list(
+        candidates = self.store.lexical_candidates(
             request.scope,
+            request.query,
             session_id=request.session_id,
             kinds=kinds,
             limit=self.settings.candidate_limit + 1,
         )
         warnings = []
         if len(candidates) > self.settings.candidate_limit:
-            warnings.append(
-                "Candidate limit reached; only the most recently created records searched"
-            )
+            warnings.append("Lexical candidate limit reached; highest-ranked matches searched")
             candidates = candidates[: self.settings.candidate_limit]
-        if request.session_id is None:
-            candidates = [memory for memory in candidates if memory.kind != "working"]
         vectors = None
         query_vector = None
         mode = "lexical"
-        if self.embeddings is not None and candidates:
+        if self.embeddings is not None:
             try:
-                deadline = time.monotonic() + self.settings.request_timeout
                 model_key = self.embeddings.model_key
-                vectors = self.store.get_embeddings([memory.id for memory in candidates], model_key)
-                query_vector = self.embeddings.embed([request.query])[0]
-                missing = [memory for memory in candidates if memory.id not in vectors]
-                pending = missing[: self.settings.embedding_max_new_per_recall]
-                for start in range(0, len(pending), 32):
-                    if time.monotonic() >= deadline:
-                        raise ProviderError("Embedding recall budget exhausted")
-                    batch = pending[start : start + 32]
-                    embedded = self.embeddings.embed([memory.content for memory in batch])
-                    for memory, vector in zip(batch, embedded, strict=True):
-                        if len(vector) != len(query_vector):
-                            raise ProviderError("Embedding dimensions changed")
-                        vectors[memory.id] = vector
-                        self.store.set_embedding(memory.id, model_key, vector)
-                if len(missing) > len(pending):
-                    warnings.append(
-                        "Embedding cache warm-up limited; repeat recall to continue building cache"
+                coverage = self.store.embedding_coverage(
+                    request.scope, model_key, session_id=request.session_id, kinds=kinds
+                )
+                if coverage["indexed"]:
+                    embed_query = getattr(self.embeddings, "embed_query", None)
+                    query_vector = (
+                        embed_query(request.query)
+                        if embed_query is not None
+                        else self.embeddings.embed([request.query])[0]
                     )
-                    raise ProviderError("Embedding cache incomplete")
-                if any(len(vector) != len(query_vector) for vector in vectors.values()):
-                    raise ProviderError("Cached embedding dimensions differ; use a new model name")
-                mode = "hybrid"
-            except ProviderError:
-                warnings.append("Embedding recall incomplete or unavailable; used lexical recall")
+                    semantic = self.store.vector_candidates(
+                        request.scope,
+                        model_key,
+                        query_vector,
+                        limit=self.settings.candidate_limit + 1,
+                        session_id=request.session_id,
+                        kinds=kinds,
+                    )
+                    if len(semantic) > self.settings.candidate_limit:
+                        warnings.append(
+                            "Vector candidate limit reached; highest-ranked matches searched"
+                        )
+                    combined = {memory.id: memory for memory in candidates}
+                    combined.update(
+                        (memory.id, memory) for memory in semantic[: self.settings.candidate_limit]
+                    )
+                    candidate_ids = list(combined)
+                    vectors = self.store.get_embeddings(candidate_ids, model_key)
+                    if any(len(vector) != len(query_vector) for vector in vectors.values()):
+                        raise ProviderError("Cached embedding dimensions changed")
+                    candidates = list(combined.values())
+                    mode = "hybrid"
+                    if coverage["indexed"] < coverage["total"]:
+                        mode = "hybrid_partial"
+                if coverage["indexed"] < coverage["total"]:
+                    warnings.append(
+                        f"Embedding index covers {coverage['indexed']}/{coverage['total']} "
+                        "records; "
+                        "run explicit indexing to complete coverage"
+                    )
+            except (ProviderError, ValueError):
+                warnings.append("Embedding recall unavailable; used lexical recall")
                 query_vector = None
                 vectors = None
         # Provider calls may have taken seconds: never rank a record deleted,
@@ -146,9 +162,60 @@ class MemoryService:
                 limit=request.limit,
                 query_vector=query_vector,
                 vectors=vectors,
+                semantic_threshold=getattr(
+                    self.embeddings, "similarity_threshold", self.settings.embedding_min_similarity
+                ),
             ),
             retrieval_mode=mode,
             warnings=warnings,
+        )
+
+    def index(self, request: IndexRequest) -> IndexResponse:
+        """Build a bounded document index explicitly, never as a recall side effect."""
+        if self.embeddings is None:
+            raise NotConfiguredError("Embedding provider is not configured")
+        model_key = self.embeddings.model_key
+        if request.rebuild:
+            self.store.clear_embeddings(request.scope, model_key)
+        pending = self.store.embedding_missing(request.scope, model_key, limit=request.limit)
+        deadline = time.monotonic() + self.settings.request_timeout
+        processed = 0
+        dimensions = None
+        start = 0
+        while start < len(pending):
+            if time.monotonic() >= deadline:
+                break
+            end, characters = start, 0
+            while end < len(pending) and end - start < 32:
+                size = len(pending[end].content)
+                if end > start and characters + size > 32_000:
+                    break
+                characters += size
+                end += 1
+            batch = pending[start:end]
+            start = end
+            embedded = self.embeddings.embed([memory.content for memory in batch])
+            if len(embedded) != len(batch):
+                raise ProviderError("Embedding batch length mismatch")
+            for vector in embedded:
+                dimensions = dimensions or len(vector)
+                if not vector or len(vector) != dimensions:
+                    raise ProviderError("Embedding dimensions changed")
+            # Deletes/expiry during encoding must not revive a record or recreate its cache.
+            active = {
+                memory.id
+                for memory in self.store.refresh_active(request.scope, [m.id for m in batch])
+            }
+            for memory, vector in zip(batch, embedded, strict=True):
+                if memory.id in active:
+                    processed += int(self.store.set_embedding(memory.id, model_key, vector))
+        coverage = self.store.embedding_coverage(request.scope, model_key)
+        return IndexResponse(
+            processed=processed,
+            total=coverage["total"],
+            indexed=coverage["indexed"],
+            complete=coverage["indexed"] == coverage["total"],
+            model_key=model_key,
         )
 
     def context(self, request: ContextRequest) -> ContextResponse:
@@ -168,6 +235,7 @@ class MemoryService:
                         "content": memory.content,
                         "confidence": memory.confidence,
                         "source_ids": memory.source_ids,
+                        "source_count": memory.source_count,
                     },
                     ensure_ascii=False,
                     separators=(",", ":"),

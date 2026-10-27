@@ -1,0 +1,327 @@
+{
+  "fixture_version": 1,
+  "clock": "2026-10-28T00:00:00+00:00",
+  "record_count": 26,
+  "case_count": 22,
+  "mode": "offline-lexical",
+  "model_calls": 0,
+  "embedding_model_key": null,
+  "semantic_threshold": null,
+  "metrics": {
+    "k": 3,
+    "positive_cases": 14,
+    "recall_at_k": 0.8571428571428571,
+    "mrr_at_k": 0.8571428571428571,
+    "strict_empty_cases": 8,
+    "strict_empty_passed": 8,
+    "forbidden_hits": 0
+  },
+  "strict_checks_passed": true,
+  "cases": [
+    {
+      "id": "mixed_python",
+      "category": "mixed-language",
+      "query": "Python开发",
+      "expected": [
+        "python_preference",
+        "python_release"
+      ],
+      "returned": [
+        "python_preference",
+        "python_release"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "reply_language",
+      "category": "preference",
+      "query": "中文解释",
+      "expected": [
+        "chinese_reply"
+      ],
+      "returned": [
+        "chinese_reply"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "drink_literal",
+      "category": "preference",
+      "query": "乌龙茶",
+      "expected": [
+        "tea_preference"
+      ],
+      "returned": [
+        "tea_preference"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "procedure_test",
+      "category": "procedure",
+      "query": "pytest",
+      "expected": [
+        "release_steps",
+        "python_release"
+      ],
+      "returned": [
+        "python_release",
+        "release_steps"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "backup_sources",
+      "category": "mixed-language",
+      "query": "SQLite备份",
+      "expected": [
+        "sqlite_backup",
+        "sqlite_episode"
+      ],
+      "returned": [
+        "sqlite_episode",
+        "sqlite_backup"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "framework_event",
+      "category": "episode",
+      "query": "FastAPI接口",
+      "expected": [
+        "fastapi_episode"
+      ],
+      "returned": [
+        "fastapi_episode"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "english_entity",
+      "category": "english",
+      "query": "Prometheus",
+      "expected": [
+        "metrics"
+      ],
+      "returned": [
+        "metrics"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "named_project",
+      "category": "entity",
+      "query": "GraphAtlas",
+      "expected": [
+        "graph_project"
+      ],
+      "returned": [
+        "graph_project"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "current_fact",
+      "category": "fact-version",
+      "query": "Berlin",
+      "expected": [
+        "new_city"
+      ],
+      "returned": [
+        "new_city"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "timezone",
+      "category": "english",
+      "query": "timezone Shanghai",
+      "expected": [
+        "timezone"
+      ],
+      "returned": [
+        "timezone"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "working_match",
+      "category": "working",
+      "query": "sessionpin",
+      "expected": [
+        "working_current"
+      ],
+      "returned": [
+        "working_current"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "theme_preference",
+      "category": "preference",
+      "query": "深色主题",
+      "expected": [
+        "dark_theme"
+      ],
+      "returned": [
+        "dark_theme"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "synonym_hard",
+      "category": "semantic-gap",
+      "query": "quiet workspace",
+      "expected": [
+        "quiet_office"
+      ],
+      "returned": [],
+      "missing": [
+        "quiet_office"
+      ],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "cross_language_hard",
+      "category": "semantic-gap",
+      "query": "oolong beverage",
+      "expected": [
+        "tea_preference"
+      ],
+      "returned": [],
+      "missing": [
+        "tea_preference"
+      ],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "user_isolation",
+      "category": "isolation",
+      "query": "userprivatecipher",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "agent_isolation",
+      "category": "isolation",
+      "query": "agentprivatecipher",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "namespace_isolation",
+      "category": "isolation",
+      "query": "namespaceprivatecipher",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "expiry",
+      "category": "expiry",
+      "query": "temporarycipher",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "old_fact_hidden",
+      "category": "fact-version",
+      "query": "Oslo",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "working_hidden_without_session",
+      "category": "working",
+      "query": "sessionpin",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "other_session_hidden",
+      "category": "working",
+      "query": "foreignsessionpin",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    },
+    {
+      "id": "unrelated_pinned_hidden",
+      "category": "negative",
+      "query": "unseenunrelatedword",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "lexical",
+      "warnings": []
+    }
+  ],
+  "limitations": "Small hand-labeled synthetic diagnostic set, not a general benchmark."
+}

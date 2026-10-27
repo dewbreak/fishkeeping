@@ -1,0 +1,40 @@
+{
+  "started_at": "2026-10-27T17:21:09.604837+00:00",
+  "status": "passed",
+  "max_calls": 1,
+  "max_output_tokens": 1024,
+  "synthetic_data_only": true,
+  "checks": {
+    "receipt_before_model": true,
+    "pending_survives_reopen": true,
+    "worker_succeeded": true,
+    "exactly_one_claim": true,
+    "daily_budget_enforced": true,
+    "real_facts_nonempty": true,
+    "assistant_claim_excluded": true,
+    "facts_have_source": true,
+    "replay_no_second_job": true,
+    "completed_job_not_reclaimed": true,
+    "facts_recalled": true,
+    "single_model_call": true,
+    "forget_cascades": true,
+    "tombstone_prevents_resurrection": true
+  },
+  "calls": [
+    {
+      "phase": "durable_extraction",
+      "http_status": 200,
+      "model": "deepseek-flash",
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 260,
+        "completion_tokens": 73,
+        "total_tokens": 333,
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 260
+      },
+      "latency_seconds": 1.141
+    }
+  ],
+  "completed_at": "2026-10-27T17:21:10.857220+00:00"
+}

@@ -25,7 +25,14 @@ class Settings(BaseSettings):
     embedding_model: str | None = None
     request_timeout: float = Field(default=45, ge=1, le=300)
     candidate_limit: int = Field(default=5000, ge=100, le=100000)
-    embedding_max_new_per_recall: int = Field(default=64, ge=1, le=1024)
+    embedding_backend: Literal["remote", "local"] = "remote"
+    local_embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    local_embedding_cache: str = ".cache/embeddings"
+    local_embedding_threads: int = Field(default=2, ge=1, le=32)
+    local_embedding_min_similarity: float = Field(default=0.50, ge=0, lt=1)
+    embedding_min_similarity: float = Field(default=0.35, ge=0, lt=1)
+    worker_daily_call_limit: int = Field(default=20, ge=0, le=10000)
+    worker_max_attempts: int = Field(default=3, ge=1, le=10)
 
     @field_validator("deepseek_api_key", "embedding_api_key", mode="before")
     @classmethod

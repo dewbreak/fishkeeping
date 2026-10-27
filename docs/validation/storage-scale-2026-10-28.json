@@ -1,0 +1,91 @@
+{
+  "started_at": "2026-10-27T17:25:32.010852+00:00",
+  "status": "passed",
+  "synthetic_data_only": true,
+  "environment": {
+    "os": "Windows",
+    "os_release": "11",
+    "os_version": "10.0.26200",
+    "machine": "AMD64",
+    "python": "3.12.4",
+    "python_implementation": "CPython",
+    "sqlite": "3.45.3",
+    "database": ":memory:"
+  },
+  "dataset": {
+    "scope_records": 10000,
+    "old_relevant_records": 1,
+    "newer_noise_records": 9999,
+    "foreign_scope_records": 3,
+    "total_database_records": 10003,
+    "vector_dimensions": 384,
+    "vector_source": "deterministic synthetic values, never a model provider",
+    "vector_model_key": "synthetic-fixed-vectors-384-v1-no-model",
+    "noise_vector_patterns": 257
+  },
+  "cost": {
+    "model_calls": 0,
+    "network_requests": 0,
+    "model_tokens": 0
+  },
+  "checks": {
+    "complete_scope_vector_coverage": true,
+    "old_needle_first_all_lexical_queries": true,
+    "old_needle_first_all_vector_queries": true,
+    "own_scope_queries_exclude_foreign_records": true,
+    "foreign_0_scope_isolation": true,
+    "foreign_1_scope_isolation": true,
+    "foreign_2_scope_isolation": true
+  },
+  "limitations": [
+    "In-memory SQLite; excludes filesystem durability/fsync cost and disk contention.",
+    "Single process and connection, without concurrent ingestion or deletion.",
+    "Five repetitions describe this run's median/max, not production p95 or an SLA.",
+    "Synthetic short documents and repeated dense vectors do not measure semantic quality.",
+    "Vector retrieval remains exact O(N * dimensions); candidate limit caps returned records, not vectors scanned. Future ANN evaluation is required for larger workloads.",
+    "No supported production record-count limit is inferred from this diagnostic."
+  ],
+  "write_scope_memories_seconds": 10.256264,
+  "prepare_and_cache_vectors_seconds": 0.129837,
+  "lexical_candidates": {
+    "repetitions": 5,
+    "median_seconds": 0.000218,
+    "max_seconds": 0.000662,
+    "samples_seconds": [
+      0.000662,
+      0.000248,
+      0.000191,
+      0.000184,
+      0.000218
+    ],
+    "returned_records_per_query": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "candidate_limit": 100
+  },
+  "vector_candidates": {
+    "repetitions": 5,
+    "median_seconds": 1.026458,
+    "max_seconds": 1.042347,
+    "samples_seconds": [
+      1.026458,
+      1.028529,
+      1.000097,
+      0.990992,
+      1.042347
+    ],
+    "returned_records_per_query": [
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "candidate_limit": 100
+  },
+  "completed_at": "2026-10-27T17:25:47.760421+00:00"
+}

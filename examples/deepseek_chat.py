@@ -55,8 +55,8 @@ def main() -> None:
         answer = choice["message"]["content"]
         print(answer)
         # Use one stable event_id across retries of this ingestion request.
-        # Extraction can be enabled when the memory server also has its DeepSeek key configured.
-        memory.ingest(
+        # A separate worker extracts facts after the durable receipt is acknowledged.
+        memory.enqueue(
             event_id=f"chat-{uuid4().hex}",
             session_id="example-chat",
             messages=[{"role": "user", "content": query}, {"role": "assistant", "content": answer}],

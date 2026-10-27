@@ -1,0 +1,336 @@
+{
+  "fixture_version": 1,
+  "clock": "2026-10-28T00:00:00+00:00",
+  "record_count": 8,
+  "case_count": 24,
+  "mode": "local-hybrid",
+  "model_calls": 0,
+  "embedding_model_key": "local:fastembed-0.9.1|sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2@faf4aa4225822f3bc6376869cb1164e8e3feedd0|fp16-mean-l2-384|raw-query-passage|token126-weighted-chunks-v1",
+  "semantic_threshold": 0.5,
+  "metrics": {
+    "k": 3,
+    "positive_cases": 12,
+    "recall_at_k": 0.9166666666666666,
+    "mrr_at_k": 0.9166666666666666,
+    "strict_empty_cases": 12,
+    "strict_empty_passed": 12,
+    "forbidden_hits": 0
+  },
+  "strict_checks_passed": true,
+  "cases": [
+    {
+      "id": "bike_translation",
+      "category": "translation",
+      "query": "The user rides a bike to work every day.",
+      "expected": [
+        "bike"
+      ],
+      "returned": [
+        "bike"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "vegetarian_paraphrase",
+      "category": "paraphrase",
+      "query": "I do not eat meat.",
+      "expected": [
+        "vegetarian"
+      ],
+      "returned": [
+        "vegetarian"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "budget_paraphrase",
+      "category": "paraphrase",
+      "query": "每个月花钱不能超过两千元。",
+      "expected": [
+        "budget"
+      ],
+      "returned": [
+        "budget"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "drive_translation",
+      "category": "translation",
+      "query": "项目备份放在外置硬盘中。",
+      "expected": [
+        "backup_drive"
+      ],
+      "returned": [
+        "backup_drive"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "bedtime_translation",
+      "category": "translation",
+      "query": "Bedtime is eleven at night.",
+      "expected": [
+        "bedtime"
+      ],
+      "returned": [
+        "bedtime"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "music_paraphrase",
+      "category": "paraphrase",
+      "query": "Jazz is my preferred music when preparing dinner.",
+      "expected": [
+        "cooking_music"
+      ],
+      "returned": [
+        "cooking_music"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "reminder_paraphrase",
+      "category": "paraphrase",
+      "query": "开会前二十四小时提醒我。",
+      "expected": [
+        "meeting_reminder"
+      ],
+      "returned": [
+        "meeting_reminder"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "review_translation",
+      "category": "translation",
+      "query": "审查代码时希望评论简短，并附上具体例子。",
+      "expected": [
+        "review_comments"
+      ],
+      "returned": [
+        "review_comments"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "budget_question",
+      "category": "retrieval-question",
+      "query": "What is the monthly spending limit?",
+      "expected": [
+        "budget"
+      ],
+      "returned": [
+        "budget"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "commute_question",
+      "category": "retrieval-question",
+      "query": "How do I travel to work?",
+      "expected": [
+        "bike"
+      ],
+      "returned": [],
+      "missing": [
+        "bike"
+      ],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "music_question",
+      "category": "retrieval-question",
+      "query": "做饭时听什么音乐？",
+      "expected": [
+        "cooking_music"
+      ],
+      "returned": [
+        "cooking_music"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "reminder_question",
+      "category": "retrieval-question",
+      "query": "When should the meeting notification arrive?",
+      "expected": [
+        "meeting_reminder"
+      ],
+      "returned": [
+        "meeting_reminder"
+      ],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-01",
+      "category": "unrelated-question",
+      "query": "木星有多少颗卫星？",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-02",
+      "category": "unrelated-question",
+      "query": "How do volcanoes form?",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-03",
+      "category": "unrelated-question",
+      "query": "请证明勾股定理。",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-04",
+      "category": "unrelated-question",
+      "query": "Who composed The Magic Flute?",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-05",
+      "category": "unrelated-question",
+      "query": "南极冰盖的平均厚度是多少？",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-06",
+      "category": "unrelated-question",
+      "query": "How is a violin tuned?",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-07",
+      "category": "unrelated-question",
+      "query": "什么是DNA的双螺旋结构？",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-08",
+      "category": "unrelated-question",
+      "query": "When was the printing press invented?",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-09",
+      "category": "unrelated-question",
+      "query": "海豚如何通过回声定位猎物？",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-10",
+      "category": "unrelated-question",
+      "query": "Explain the rules of cricket.",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-11",
+      "category": "unrelated-question",
+      "query": "太阳日食为什么会发生？",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    },
+    {
+      "id": "unrelated-12",
+      "category": "unrelated-question",
+      "query": "How are ceramic tiles manufactured?",
+      "expected": [],
+      "returned": [],
+      "missing": [],
+      "forbidden_hits": [],
+      "retrieval_mode": "hybrid",
+      "warnings": []
+    }
+  ],
+  "limitations": "Small hand-labeled synthetic diagnostic set, not a general benchmark.",
+  "elapsed_seconds": 2.422
+}
